@@ -10,8 +10,7 @@ Input::Input(const string &inputfile) : outPostfix("")
 
   string   line;
   string   key;
-
-  nITP=0;
+  string   tmpstr;
 
   while(getline(file, line))
   {
@@ -30,21 +29,14 @@ Input::Input(const string &inputfile) : outPostfix("")
     else if (key.compare("groFile")==0) 
       linestream >> groFile;
     else if (key.compare("itpFile")==0) {
-      string file;
-      //first count number of files
-      while(linestream >> file)
-	nITP++;
-      if (nITP == 0) {
-	printf("ERROR: no itp files found\n");
-	exit(EXIT_FAILURE);
-      }
-      
-      //now get files
-      itpFiles = new string[nITP];
-      stringstream   tmpstream(line);
-      tmpstream >> key;
-      for (int ii=0; ii<nITP; ii++)
-	tmpstream >> itpFiles[ii];
+      linestream >> tmpstr;
+      itpFiles.push_back(tmpstr);
+    }
+    else if (key.compare("residue")==0) {
+      linestream >> tmpstr;
+      resNames.push_back(tmpstr);
+      linestream >> tmpstr;
+      resNums.push_back(stoi(tmpstr));
     }
     else if (key.compare(0,1,"#")==0)
       continue; //skip comment
@@ -56,15 +48,14 @@ Input::Input(const string &inputfile) : outPostfix("")
   }
 }
 
-Input::~Input() {
-  delete[] itpFiles;
+string Input::getITPfile(const int ii) const {
+  return getVect(ii, itpFiles, "itp file");
 }
 
-string Input::getITPfile(const int ii) const {
-  if (ii >= nITP || ii < 0) {
-    printf("ERROR: invalid ITP file index\n");
-    exit(EXIT_FAILURE);
-  } else
-    return itpFiles[ii];
+string Input::getResNames(const int ii) const {
+  return getVect(ii, resNames, "residue name");
 }
-  
+
+int Input::getResNums(const int ii) const {
+  return getVect(ii, resNums, "residue number");
+}

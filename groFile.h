@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <regex>
 
 using namespace std;
 class GroFile

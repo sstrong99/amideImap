@@ -4,15 +4,20 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 class Input {
 public:
   Input(const string &inputfile);
-  ~Input();
+  ~Input() {};
 
-  int    getNitp() const { return nITP; }
+  int    getNitp() const { return itpFiles.size(); }
   string getITPfile(const int ii) const;
+  
+  int    getNres() const { return resNames.size(); }
+  string getResNames(const int ii) const;
+  int    getResNums(const int ii)  const;
   
   string getTrajFile() const {return trajFile;};
   string getOutPostfix() const {return outPostfix;};
@@ -22,8 +27,18 @@ private:
   string trajFile;
   string outPostfix;
   string groFile;
-  string *itpFiles;
+  vector<string> itpFiles;
+  vector<string> resNames;
+  vector<int>    resNums;
 
-  int nITP;
+  template<class T>
+    T getVect(const uint ii,const vector<T> vect,const string &name) const {
+    if (ii >= vect.size()) {
+      string tmp = "ERROR: invalid "+name+" index\n";
+      printf("%s",tmp.c_str());
+      exit(EXIT_FAILURE);
+    } else
+      return vect[ii];
+  };
 };
 #endif

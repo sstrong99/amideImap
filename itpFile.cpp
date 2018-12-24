@@ -9,41 +9,50 @@ ItpFile::ItpFile(const string &filename) {
 
   string   line;
   int ii=0;
+  bool readFlag=false;
   while(getline(file, line)) {
-    //skip lines until find [ atoms ]
-    if (line.compare("[ atoms ]"))
-      continue;
-
     //skip comment
     if (line.compare(0,1,";")==0)
       continue;
-
-    //empty line indicates end of atoms section
-    if (line.empty())
-      break;
-
-    string entry;
-    stringstream   linestream(line);
-
-    //skip first 3 columns
-    linestream >> entry;
-    linestream >> entry;
-    linestream >> entry;
     
-    //get residue
-    linestream >> res[ii];
+    //skip lines until find [ atoms ]
+    if (!readFlag && line.compare("[ atoms ]")==0) {
+      readFlag=true;
+      continue;
+    }
 
-    //get type
-    linestream >> type[ii];
+    if (readFlag) {
+      //empty line indicates end of atoms section
+      if (line.empty()) {
+	readFlag=false;
+	break;
+      }
+      
+      string entry;
+      stringstream   linestream(line);
 
-    //skip line
-    linestream >> entry;
+      //skip first 3 columns
+      linestream >> entry;
+      linestream >> entry;
+      linestream >> entry;
+    
+      //get residue
+      linestream >> entry;
+      res.push_back(entry);
 
-    //get charge
-    linestream >> entry;
-    charge[ii] = stof(entry);
+      //get type
+      linestream >> entry;
+      type.push_back(entry);
 
-    ii++;
+      //skip line
+      linestream >> entry;
+
+      //get charge
+      linestream >> entry;
+      charge.push_back( stof(entry) );
+
+      ii++;
+    }
   }
 
   nTypes=ii;
@@ -51,12 +60,6 @@ ItpFile::ItpFile(const string &filename) {
   //TODO: could optimize this to remove redundant types
 
   //TODO: check if type is only thing necessary for idenetifying charge
-}
-
-ItpFile::~ItpFile() {
-  delete[] res;
-  delete[] type;
-  delete[] charge;
 }
 
 int ItpFile::findType(const string &s) const {

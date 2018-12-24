@@ -14,7 +14,7 @@ Charges::Charges(const Input &input,const GroFile &gro) {
     tmptype = gro.getType(ii);
     for (jj=0; jj<nITP; jj++) {
       thisI=itps[jj].findType(tmptype);
-      if (thisI > 0) {
+      if (thisI >= 0) {
 	charges[ii]=itps[jj].getQ(thisI);
 	break;
       }

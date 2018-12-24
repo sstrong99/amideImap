@@ -1,49 +1,7 @@
 #include "calcW.h"
 
-CalcW::CalcW(const int model,const int natoms,float avef) : avef(avef) {
-  float qO;
-  if (model==0) { //SPCE
-    aPerM=3;
-    qO=-0.8476f;
-    mInc=0;
-    mymap = new MapAS2008();
-    h2x = new SPCEind();
-  } else if (model==1 || model==2) { //TIP4P class
-    aPerM=4;
-    qO=-1.04f;
-    mInc=aPerM-1;
-    mymap = new MapGruenbaum2013();
-    h2x = new TIP4Pind();
-  } else {
-    printf("ERROR: invalid model choice\n");
-    exit(EXIT_FAILURE);
-  }
-
-  charges = new float[aPerM];
-  if (model==0) {
-    charges[0]=qO;
-    charges[1]=-charges[0]/2;
-  } else {
-    charges[0]=0.0f;
-    charges[3]=qO;
-    charges[1]=-charges[3]/2;
-  }
-  charges[2]=charges[1];
-
-  moveMfrac=0.0;
-  if (model==2) //for TIP4P/2005 and E3B3
-    moveMfrac=0.15/0.1546;
-
-  if (natoms % aPerM) {
-    printf("ERROR: the number of atoms is not divisible by %d\n",aPerM);
-    exit(EXIT_FAILURE);
-  }
-  nO=natoms/aPerM;
-#ifdef DEBUG
-  nO=30;
-#endif
-  nH=nO*2;
-
+CalcW::CalcW(const int model,const int natoms,float avef) : avef(avef), cut2(0.2*0.2) {
+  //TODO: convert tip3p to tip4p?
   E      = new float[nH];
   OH     = new rvec[nH];
   dipdip = new float[nH*nH];
@@ -53,18 +11,12 @@ CalcW::CalcW(const int model,const int natoms,float avef) : avef(avef) {
 CalcW::~CalcW() {
   delete[] E;
   delete[] OH;
-  delete[] dipdip;
   delete[] wMat;
   delete[] charges;
-  delete mymap;
-  delete h2x;
 }
 
-void CalcW::compute(Traj &traj, rvec *m) {
-  if (moveMfrac != 0.0)
-    traj.moveM(moveMfrac,aPerM);
-
-  calcE(traj);
+void CalcW::compute(Traj &traj, rvec *m, vector<int> inds) {
+  calcE(traj,inds);
 
   //map E-field to hamiltonian elements
   mapE2W(m);
@@ -72,8 +24,7 @@ void CalcW::compute(Traj &traj, rvec *m) {
 
 //This is slower than calcE, and only calculates the E-field at the H atom
 //not the dipole-dipole term
-void CalcW::calcE(const Traj &traj) {
-  float cut2=mymap->getcut2()*A0INV*A0INV;
+void CalcW::calcE(const Traj &traj, vector<int> inds) {
   float Ddip=mymap->getDdip()*A0INV;
   const rvec *x=traj.getCoords();
   rvec box;
@@ -88,31 +39,22 @@ void CalcW::calcE(const Traj &traj) {
     }
 
   //compute OH vectors and dip locations
-  rvec OHtmp;
+  rvec  tmpvec;
   float d2,d;
   int hInd,jj;
-  rvec *dip=new rvec[nH];  //positions of point dipoles
-  for (ii=0; ii<nO; ii++) {
-    for (jj=0; jj<2; jj++) { //loop through 2 H on each oxygen
-      hInd=ii*aPerM + jj + 1;
-      addRvec(x[hInd],x[ii*aPerM],OHtmp,-1);
-      pbc(OHtmp,box);
-      d2=norm2vec(OHtmp);
-      d=sqrt(d2);
-      multRvec(OHtmp,1.0/d);
-      setRvec(OH[ii*2+jj],OHtmp);
-
-      multRvec(OHtmp,Ddip); //OH is unit, so now has length Ddip
-      addRvec(x[ii*aPerM],OHtmp,+1);
-      setRvec(dip[ii*2+jj],OHtmp);
-    }
-  }
-
   int hi,hj,kk;
   rvec hiv,vec,dipI,OHi,tmpEi;
-  float dipdiptmp;
-  for (ii=0; ii<nH; ii++) { //loop over all Hs
-    hi=h2x->convert(ii);
+  for (ii=0; ii<inds.size(); ii++) {
+    addRvec(x[inds[ii]],x[inds[ii]+1],tmpvec,-1);
+    pbc(tmpvec,box);
+    d2=norm2vec(tmpvec);
+    d=sqrt(d2);
+    multRvec(tmpvec,1.0/d);
+    setRvec(m[ii],tmpvec);
+    for (jj=0; jj<traj.getNatoms(); jj++) {
+      if (ii==jj)
+	continue;
+
 
     setRvec(tmpEi,0.0);
     getRvec(x[hi],hiv);

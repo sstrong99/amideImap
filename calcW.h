@@ -2,11 +2,11 @@
 #define CALCW_H
 
 #include "h2xind.h"
-#include "map.h"
 #include "traj.h"
 #include "vecManip.h"
 
 #include <cmath>
+#include <vector>
 
 #define CM2PS 0.18836516 //cm/ps = 1/2pi*c
 #define HART2CM 2.1947463e5 //convert hartree to wavenumber
@@ -15,11 +15,8 @@ class CalcW {
 public:
   CalcW(const int model,const int natoms,float avef=0.0);
   ~CalcW();
-  void compute(Traj &traj,rvec *m);
+  void compute(Traj &traj,rvec *m,vector<int> inds);
 
-  int getNH() const {return nH;};
-
-  float calcAveF();
   void getW(float* out) const ;
   const float* getW() const { return wMat; };
   inline float getW(int nn,int mm) const
@@ -34,24 +31,14 @@ private:
 
   inline void setNN(float *M, const float val, const int nn, const int mm)
   { M[mm+nn*nH]=val; };
-  inline float getDipdip(const int nn,const int mm)
-  { return dipdip[mm+nn*nH]; };
 
-  float *charges;
-  int aPerM; //atoms per molecule
-  int nO;
-  int nH;
-
-  float *E;      //scalar Efield at each H, along OH
-  rvec *OH;       //OH vectors
-  float *dipdip; //dipole dipole term
-  Map *mymap;
-  H2Xind *h2x;
+  float *En;      //scalar Efield at each N
+  float *Ec;      //scalar Efield at each C
   float *wMat;
-  float avef;
 
-  float moveMfrac;   //how much to move M by
-  int mInc;       //increment O ind by this much to get M ind
+  //map
+  const float cut2;
+
 };
 
 

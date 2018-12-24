@@ -17,12 +17,20 @@ int main(int argc, const char *argv[])
 
   Timer time_entire;
 
+  //read files
   GroFile gro(input.getGroFile());
   Charges charges(input,gro);
   Traj traj((input.getTrajFile()).c_str());
 
-  //TODO: get indicies of C=O using gro.findCarboxyl(res,num)
+  //get indicies of C=O using gro.findCarboxyl(res,num)
+  vector<int> indC;
+  vector<int> tmp;
+  for (int ii=0; ii<input.getNres(); ii++) {
+    tmp=gro.findCarboxyl(input.getResNames(ii),input.getResNums(ii));
+    indC.insert( indC.end(), tmp.begin(), tmp.end() );
+  };
 
+  traj->next()
   //TODO: modify calcW::calcE to calculate electric field
 
   //TODO: modify map.h for amideI map
