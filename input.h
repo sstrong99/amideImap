@@ -23,6 +23,9 @@ public:
   string getOutPostfix() const {return outPostfix;};
   string getGroFile() const {return groFile;};
 
+  string getEnergyFile() const {return "Energy"+outPostfix+".txt";};
+  string getDipoleFile() const {return "Dipole"+outPostfix+".txt";};
+
 private:
   string trajFile;
   string outPostfix;

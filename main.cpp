@@ -36,9 +36,14 @@ int main(int argc, const char *argv[])
   CalcW calcW(nchrom,charges);
 
   //loop through timesteps
-  traj.next();
-  rvec *CO = new rvec[nchrom];
-  calcW.compute(traj,CO,indC);
+  FILE *fFreq=fopen(input.getEnergyFile().c_str(),"w");
+  FILE *fDip=fopen(input.getDipoleFile().c_str(),"w");
+  while(traj.next()==0) {
+    calcW.compute(traj,indC);
+    calcW.print(fFreq,fDip);
+  }
+  fclose(fFreq);
+  fclose(fDip);
 
   //TODO: add output function to to calcW to print dipoles, energies
   

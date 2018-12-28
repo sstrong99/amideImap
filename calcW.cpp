@@ -7,21 +7,20 @@ CalcW::CalcW(const int nchrom, const Charges &chg) :
   cut(2.0), cut2(cut*cut), cutN(cut+NDIST), cutN2(cutN*cutN)
 {
   //TODO: convert tip3p to tip4p?
-  En     = new float[nchrom];
-  Ec     = new float[nchrom];
   freq   = new float[nchrom];
+  CO     = new rvec[nchrom];
 }
 
 CalcW::~CalcW() {
-  delete[] En;
-  delete[] Ec;
   delete[] freq;
+  delete[] CO;
 }
 
-void CalcW::compute(const Traj &traj, rvec *m, const vector<int> &inds) {
+void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   const rvec  *x=traj.getCoords();
   rvec box;
   traj.getBox(box);
+  ts=traj.getNT()-1;
   int ii,jj;
   //check that box is larger than 2*cutoff
   for (ii=0; ii<DIM; ii++)
@@ -32,6 +31,7 @@ void CalcW::compute(const Traj &traj, rvec *m, const vector<int> &inds) {
 
   rvec tmpCO, tmpvec, Cpos, tmpEn, tmpEc;
   float d2,d;
+  int natoms = traj.getNatoms();
   //loop through labelled CO and calculate CO vec
   for (ii=0; ii<nchrom; ii++) {
     setRvec(Cpos,x[inds[ii]]);
@@ -40,12 +40,12 @@ void CalcW::compute(const Traj &traj, rvec *m, const vector<int> &inds) {
     d2=norm2vec(tmpCO);
     d=sqrt(d2);
     multRvec(tmpCO,1.0/d);
-    setRvec(m[ii],tmpCO);
+    setRvec(CO[ii],tmpCO);
     
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
-    for (jj=0; jj<traj.getNatoms(); jj++) {
+    for (jj=0; jj<natoms; jj++) {
       if (exclude[jj])
 	continue;
 
@@ -71,10 +71,17 @@ void CalcW::compute(const Traj &traj, rvec *m, const vector<int> &inds) {
 	}
       }
     }
-    Ec[ii]=dot(tmpEc,tmpCO);
-    En[ii]=dot(tmpEn,tmpCO);
+    freq[ii] = 1618 + 7729*dot(tmpEc,tmpCO) - 3576*dot(tmpEn,tmpCO);
   }
+}
 
-  for (ii=0; ii<nchrom; ii++)
-    freq[ii]=1618 + 7729*Ec[ii] - 3576*En[ii];
+void CalcW::print(FILE *fFreq, FILE *fDip) {
+  fprintf(fFreq,"%d",ts);
+  fprintf(fDip,"%d",ts);
+  for (int ii=0; ii<nchrom; ii++) {
+    fprintf(fFreq," %.5e",freq[ii]);
+    fprintf(fDip," %.5e %.5e %.5e",CO[ii][0],CO[ii][1],CO[ii][2]);
+  }
+  fprintf(fFreq,"\n");
+  fprintf(fDip,"\n");
 }
