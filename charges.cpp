@@ -6,12 +6,15 @@ Charges::Charges(const Input &input,const GroFile &gro) {
   for (int ii=0; ii<nITP; ii++)
     itps.push_back(ItpFile(input.getITPfile(ii)));
 
-  string tmptype;
+  string tmptype,tmpres;
   natom = gro.getNatom();
   charges = new float[natom];
+  exclude = new bool[natom];
   int jj,thisI;
   for (int ii=0; ii<natom; ii++) {
     tmptype = gro.getType(ii);
+
+    //loop through itp files to find charge
     for (jj=0; jj<nITP; jj++) {
       thisI=itps[jj].findType(tmptype);
       if (thisI >= 0) {
@@ -25,9 +28,19 @@ Charges::Charges(const Input &input,const GroFile &gro) {
       printf("ERROR: no charge found for %s atom type\n",tmptype.c_str());
       exit(EXIT_FAILURE);
     }
+
+    //set exclude flag to exclude all peptide charges
+    tmpres=gro.getRes(ii);
+    if (tmpres.compare("HOH")==0 ||
+	tmpres.compare("POT")==0 ||
+	tmpres.compare("CL" )==0   )
+      exclude[ii]=false;
+    else
+      exclude[ii]=true;
   }
 }
 
 Charges::~Charges() {
   delete[] charges;
+  delete[] exclude;
 }

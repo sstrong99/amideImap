@@ -3,6 +3,7 @@
 #include "groFile.h"
 #include "charges.h"
 #include "traj.h"
+#include "calcW.h"
 
 #include <cstdio>
 #include <string>
@@ -30,10 +31,14 @@ int main(int argc, const char *argv[])
     indC.insert( indC.end(), tmp.begin(), tmp.end() );
   };
 
-  traj->next()
-  //TODO: modify calcW::calcE to calculate electric field
+  //init calcW
+  int nchrom = indC.size();
+  CalcW calcW(nchrom,charges);
 
-  //TODO: modify map.h for amideI map
+  //loop through timesteps
+  traj.next();
+  rvec *CO = new rvec[nchrom];
+  calcW.compute(traj,CO,indC);
 
   //TODO: add output function to to calcW to print dipoles, energies
   

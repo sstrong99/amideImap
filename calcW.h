@@ -1,8 +1,8 @@
 #ifndef CALCW_H
 #define CALCW_H
 
-#include "h2xind.h"
 #include "traj.h"
+#include "charges.h"
 #include "vecManip.h"
 
 #include <cmath>
@@ -12,34 +12,24 @@
 #define HART2CM 2.1947463e5 //convert hartree to wavenumber
 
 class CalcW {
-public:
-  CalcW(const int model,const int natoms,float avef=0.0);
+ public:
+  CalcW(const int nchrom,const Charges &chg);
   ~CalcW();
-  void compute(Traj &traj,rvec *m,vector<int> inds);
+  void compute(const Traj &traj, rvec *m, const vector<int> &inds);
 
-  void getW(float* out) const ;
-  const float* getW() const { return wMat; };
-  inline float getW(int nn,int mm) const
-  { return wMat[mm+nn*nH]; };
+  const float* getW() const { return freq; };
 
-  float maxInterFreq() const;
-  float avgIntraFreq() const;
-
-private:
-  void calcE(const Traj &traj);
-  void mapE2W(rvec *m);
-
-  inline void setNN(float *M, const float val, const int nn, const int mm)
-  { M[mm+nn*nH]=val; };
-
+ private:
+  const int nchrom;
+  const float *q;
+  const bool *exclude;
+  
   float *En;      //scalar Efield at each N
   float *Ec;      //scalar Efield at each C
-  float *wMat;
+  float *freq;
 
-  //map
-  const float cut2;
-
+  //efield cutoffs
+  const float cut,cut2,cutN,cutN2;
 };
-
 
 #endif
