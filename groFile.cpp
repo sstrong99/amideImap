@@ -61,10 +61,16 @@ string GroFile::extractAndTrim(const string &s, const int a, const int b) {
 vector<int> GroFile::findCarboxyl(const string &whichRes,const int whichNum) const {
   vector<int> list;
   for (int ii=0; ii<natom; ii++) 
-    if ( whichNum==resnum[ii] && \
-	 whichRes.compare(res[ii])==0 && \
+    if ( whichNum==resnum[ii] && 
+	 whichRes.compare(res[ii])==0 && 
 	 type[ii].compare("C")==0 )
       list.push_back(ii);
+
+  if (list.size()==0) {
+    string err="ERROR: no "+whichRes+to_string(whichNum)+" residues found...\n";
+    printf("%s",err.c_str());
+    exit(EXIT_FAILURE);
+  }
 
   return list;
 }
