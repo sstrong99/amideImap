@@ -9,7 +9,7 @@ Traj::Traj(const char *xtcfile)
   //open xtc file
   trj = xdrfile_open(xtcfile,"r");
   if (trj == NULL) {
-    printf("Can't open %s\n",xtcfile);
+    printf("ERROR: trajectory file %s cannot be read.\n",xtcfile);
     exit(EXIT_FAILURE);
   }
 

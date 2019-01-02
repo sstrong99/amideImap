@@ -4,6 +4,8 @@
 #include "charges.h"
 #include "traj.h"
 #include "calcW.h"
+#include "compareEnergy.h"
+//#include "compareDipole.h"
 
 #include <cstdio>
 #include <string>
@@ -36,17 +38,21 @@ int main(int argc, const char *argv[])
   CalcW calcW(nchrom,charges);
 
   //loop through timesteps
+  CompareEnergy cmpE("Energy_carr.txt",nchrom);
   FILE *fFreq=fopen(input.getEnergyFile().c_str(),"w");
   FILE *fDip=fopen(input.getDipoleFile().c_str(),"w");
   while(traj.next()==0) {
     calcW.compute(traj,indC);
     calcW.print(fFreq,fDip);
+
+    cmpE.next();
+    //cmp.print(calcW);
   }
   fclose(fFreq);
   fclose(fDip);
 
   //TODO: add output function to to calcW to print dipoles, energies
-  
+
   string time = time_entire.getDHMS();
   printf("Completed in %s\n",time.c_str());
 

@@ -24,7 +24,7 @@ class CalcW {
   const float *q;
   const bool *exclude;
   int ts;
-  
+
   float *freq;
   rvec  *CO;      //transition dipole moments
 

@@ -12,9 +12,9 @@ ItpFile::ItpFile(const string &filename) {
   bool readFlag=false;
   while(getline(file, line)) {
     //skip comment
-    if (line.compare(0,1,";")==0)
+    if (line.compare(0,1,";")==0 || line.compare(0,1,"#")==0)
       continue;
-    
+
     //skip lines until find [ atoms ]
     if (!readFlag && line.compare("[ atoms ]")==0) {
       readFlag=true;
@@ -27,7 +27,7 @@ ItpFile::ItpFile(const string &filename) {
 	readFlag=false;
 	break;
       }
-      
+
       string entry;
       stringstream   linestream(line);
 
@@ -35,7 +35,7 @@ ItpFile::ItpFile(const string &filename) {
       linestream >> entry;
       linestream >> entry;
       linestream >> entry;
-    
+
       //get residue
       linestream >> entry;
       res.push_back(entry);
@@ -63,7 +63,7 @@ ItpFile::ItpFile(const string &filename) {
 }
 
 int ItpFile::findType(const string &s) const {
-  for (int ii=0; ii<nTypes; ii++) 
+  for (int ii=0; ii<nTypes; ii++)
     if (s.compare(type[ii]) == 0) {
       return ii;
     }

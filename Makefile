@@ -12,7 +12,7 @@ else
 endif
 ## $(info $$SOFTDIR is [${SOFTDIR}])
 
-INC     = -I$(SOFTDIR)/include/xdrfile 
+INC     = -I$(SOFTDIR)/include/xdrfile
 FLAGS	= -O2 -march=native -Wall -std=c++11 -MMD -MP -fopenmp -DUSEOMP
 DEBUGFLAGS = -g -std=c++11 -Wall -fopenmp -MMD -MP #-DUSEOMP #-DDEBUG -pg
 LIBS    = -lxdrfile -lm -ldl -lgomp -lpthread
@@ -20,7 +20,7 @@ LIBDIRS = -L$(SOFTDIR)/lib
 
 #MMD and MP generate .d files
 OBJ_DIR = OBJ
-SRCS  = main.cpp timer.cpp input.cpp groFile.cpp itpFile.cpp charges.cpp traj.cpp calcW.cpp 
+SRCS  = main.cpp timer.cpp input.cpp groFile.cpp itpFile.cpp charges.cpp traj.cpp calcW.cpp compare.cpp compareEnergy.cpp
 
 OBJS := $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)

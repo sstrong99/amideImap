@@ -4,7 +4,7 @@
 
 CalcW::CalcW(const int nchrom, const Charges &chg) :
   nchrom(nchrom), q(chg.getCharges()), exclude(chg.getExclude()),
-  cut(2.0), cut2(cut*cut), cutN(cut+NDIST), cutN2(cutN*cutN)
+  cut(2.0*A0INV), cut2(cut*cut), cutN(cut+NDIST*A0INV), cutN2(cutN*cutN)
 {
   //TODO: convert tip3p to tip4p?
   freq   = new float[nchrom];
@@ -37,11 +37,11 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     setRvec(Cpos,x[inds[ii]]);
     addRvec(Cpos,x[inds[ii]+1],tmpCO,-1);
     pbc(tmpCO,box);
+    setRvec(CO[ii],tmpCO);
     d2=norm2vec(tmpCO);
     d=sqrt(d2);
     multRvec(tmpCO,1.0/d);
-    setRvec(CO[ii],tmpCO);
-    
+
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
@@ -79,8 +79,10 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   fprintf(fFreq,"%d",ts);
   fprintf(fDip,"%d",ts);
   for (int ii=0; ii<nchrom; ii++) {
-    fprintf(fFreq," %.5e",freq[ii]);
-    fprintf(fDip," %.5e %.5e %.5e",CO[ii][0],CO[ii][1],CO[ii][2]);
+    fprintf(fFreq," %f",freq[ii]);
+    for (int kk=0; kk<3; kk++) {
+      fprintf(fDip," %f",CO[ii][kk]);
+    }
   }
   fprintf(fFreq,"\n");
   fprintf(fDip,"\n");
