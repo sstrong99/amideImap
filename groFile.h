@@ -14,9 +14,13 @@ class GroFile
   GroFile(const string &filename);
   ~GroFile();
 
-  inline string getType(const int ii) const { return type[ii]; }
-  inline string getRes(const int ii) const { return res[ii]; }
+  const string* getType()   const { return type;   }
+  const string* getRes()    const { return res;    }
+  const int*    getResNum() const { return resnum; }
+  const int*    getChain()  const { return chain;  }
+
   inline int    getNatom() const {return natom;}
+
   vector<int> findCarboxyl(const string &whichRes,const int whichNum) const;
 
  private:

@@ -26,26 +26,27 @@ GroFile::GroFile(const string &filename) {
   chain  = new int[natom];
 
   int ii=0;
+  string tmpres;
+  int resdiff;
   int chainid=0;
   int lastres=-1;
-  int resdiff;
   while(getline(file, line)) {
     tmp = extractAndTrim(line,RES_ST,RES_L);
     size_t jj;
     for(jj = 0; jj < tmp.size(); jj++)
       if (std::isalpha(tmp[jj]))
 	break;
-    res[ii]  = tmp.substr(jj);
+    tmpres  = tmp.substr(jj);
+    res[ii] = tmpres;
     resnum[ii]= stoi(tmp.substr(0,jj));
 
     type[ii] = extractAndTrim(line,TYP_ST,TYP_L);
-
     //number chains from 0-n
     //-1 = not part of protein chain
-    if (res[ii].compare("HOH")==0  ||
-	res[ii].compare("DPPC")==0 ||
-	res[ii].compare("POT")==0  ||
-	res[ii].compare("CL")==0 )
+    if (tmpres.compare("HOH")==0  ||
+	tmpres.compare("DPPC")==0 ||
+	tmpres.compare("POT")==0  ||
+	tmpres.compare("CL")==0 )
     {
       chain[ii]=-1;
     } else {

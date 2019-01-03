@@ -1,21 +1,23 @@
 #include "charges.h"
 
-Charges::Charges(const Input &input,const GroFile &gro) {
+Charges::Charges(const Input &input,const GroFile &gro) :
+  type(gro.getType()), res(gro.getRes())
+{
   int nITP=input.getNitp();
   std::vector<ItpFile>  itps;
   for (int ii=0; ii<nITP; ii++)
     itps.push_back(ItpFile(input.getITPfile(ii)));
 
-  string tmptype,tmpres;
   natom = gro.getNatom();
   charges = new float[natom];
+
+  string tmptype,tmpres;
   int jj,thisI;
   for (int ii=0; ii<natom; ii++) {
-    //set exclude flag to exclude all peptide charges
-    tmpres=gro.getRes(ii);
+    tmpres=res[ii];
 
     //loop through itp files to find charge
-    tmptype = gro.getType(ii);
+    tmptype = type[ii];
     for (jj=0; jj<nITP; jj++) {
       thisI=itps[jj].findType(tmptype);
       if (thisI >= 0) {

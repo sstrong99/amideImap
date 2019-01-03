@@ -2,8 +2,9 @@
 
 #define NDIST 0.2  //Distance between C and N atom in nm
 
-CalcW::CalcW(const int nchrom, const Charges &chg) :
-  nchrom(nchrom), q(chg.getCharges()),
+CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
+  nchrom(nchrom), q(chg.getCharges()), type(gro.getType()),
+  res(gro.getRes()), resnum(gro.getResNum()), chain(gro.getChain()),
   cut(2.0*A0INV), cut2(cut*cut), cutN(cut+NDIST*A0INV), cutN2(cutN*cutN)
 {
   freq   = new float[nchrom];
@@ -14,8 +15,6 @@ CalcW::~CalcW() {
   delete[] freq;
   delete[] CO;
 }
-
-//TODO: only
 
 void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   const rvec  *x=traj.getCoords();
@@ -33,6 +32,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   rvec tmpCO, tmpvec, Cpos, tmpEn, tmpEc;
   float d2,d;
   int natoms = traj.getNatoms();
+  int thisChain,thisRes,nnL,nnR;
   //loop through labelled CO and calculate CO vec
   for (ii=0; ii<nchrom; ii++) {
     setRvec(Cpos,x[inds[ii]]);
@@ -43,13 +43,22 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     d=sqrt(d2);
     multRvec(tmpCO,1.0/d);
 
-    //TODO: include NN peptide shifts
+    thisChain=chain[ii];
+
+    //include NN peptide shifts
+    thisRes=resnum[ii];
+    nnL=thisRes-1;
+    nnR=thisRes+1;
+    calcAngles(ii,thisRes,thisChain);
 
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
     for (jj=0; jj<natoms; jj++) {
-      if (false) //TODO: exclude NN peptides
+      //exclude NN peptides
+      //TODO: should NN side chains be excluded?
+      if (thisChain==chain[jj] &&
+	  (resnum[jj]==nnL || resnum[jj]==nnR) )
 	continue;
 
       //get distance to C atom
@@ -89,4 +98,18 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   }
   fprintf(fFreq,"\n");
   fprintf(fDip,"\n");
+}
+
+uint CalcW::calcAngles(const int atomI, const int resI, const int chainI) {
+  //check if already calculated this angle
+  uint ind;
+  for (ind=0; ind<angleID.size(); ind++)
+    if (angleID[ind]==resI && angleCID[ind]==chainI)
+      break;
+  if (ind != angleID.size())
+    return ind;
+
+  angleID.push_back(resI);
+  angleCID.push_back(chainI);
+  calc1angle(
 }

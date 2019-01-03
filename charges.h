@@ -8,15 +8,17 @@
 
 class Charges
 {
- public:
+public:
   Charges(const Input &input,const GroFile &gro);
   ~Charges();
 
-  const float* getCharges() const { return charges; };
+  const float* getCharges() const { return charges; }
 
- private:
+private:
   int natom;
   float *charges;
 
+  const string *type;
+  const string *res;
 };
 #endif

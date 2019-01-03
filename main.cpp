@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
 
   //init calcW
   int nchrom = indC.size();
-  CalcW calcW(nchrom,charges);
+  CalcW calcW(nchrom,charges,gro);
 
   //loop through timesteps
   CompareEnergy cmpE("Energy_carr.txt",nchrom);
