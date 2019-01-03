@@ -59,6 +59,7 @@ GroFile::GroFile(const string &filename) {
 	  chain[ii]=chainid;
 	else
 	  chain[ii]=++chainid;
+	lastres=resnum[ii];
       }
     }
 
@@ -70,6 +71,7 @@ GroFile::~GroFile() {
   delete[] type;
   delete[] res;
   delete[] resnum;
+  delete[] chain;
 }
 
 string GroFile::extractAndTrim(const string &s, const int a, const int b) {
