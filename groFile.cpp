@@ -20,11 +20,15 @@ GroFile::GroFile(const string &filename) {
   //get number of atoms
   getline(file,line);
   natom=stoi(line);
-  type = new string[natom];
-  res  = new string[natom];
-  resnum=new int[natom];
+  type   = new string[natom];
+  res    = new string[natom];
+  resnum = new int[natom];
+  chain  = new int[natom];
 
   int ii=0;
+  int chainid=0;
+  int lastres=-1;
+  int resdiff;
   while(getline(file, line)) {
     tmp = extractAndTrim(line,RES_ST,RES_L);
     size_t jj;
@@ -33,9 +37,31 @@ GroFile::GroFile(const string &filename) {
 	break;
     res[ii]  = tmp.substr(jj);
     resnum[ii]= stoi(tmp.substr(0,jj));
-    
+
     type[ii] = extractAndTrim(line,TYP_ST,TYP_L);
-    
+
+    //number chains from 0-n
+    //-1 = not part of protein chain
+    if (res[ii].compare("HOH")==0  ||
+	res[ii].compare("DPPC")==0 ||
+	res[ii].compare("POT")==0  ||
+	res[ii].compare("CL")==0 )
+    {
+      chain[ii]=-1;
+    } else {
+      //if first protein atom
+      if (lastres==-1) {
+	lastres=resnum[ii];
+	chain[ii]=chainid;
+      } else {
+	resdiff=resnum[ii]-lastres;
+	if (resdiff==0 || resdiff==1)
+	  chain[ii]=chainid;
+	else
+	  chain[ii]=++chainid;
+      }
+    }
+
     ii++;
   }
 }
@@ -60,9 +86,9 @@ string GroFile::extractAndTrim(const string &s, const int a, const int b) {
 //return index of C atom, i think O atom is always i+1 from C atom
 vector<int> GroFile::findCarboxyl(const string &whichRes,const int whichNum) const {
   vector<int> list;
-  for (int ii=0; ii<natom; ii++) 
-    if ( whichNum==resnum[ii] && 
-	 whichRes.compare(res[ii])==0 && 
+  for (int ii=0; ii<natom; ii++)
+    if ( whichNum==resnum[ii] &&
+	 whichRes.compare(res[ii])==0 &&
 	 type[ii].compare("C")==0 )
       list.push_back(ii);
 

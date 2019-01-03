@@ -18,11 +18,12 @@ class GroFile
   inline string getRes(const int ii) const { return res[ii]; }
   inline int    getNatom() const {return natom;}
   vector<int> findCarboxyl(const string &whichRes,const int whichNum) const;
-  
+
  private:
   string *type;
   string *res;
   int    *resnum;
+  int    *chain;
   int     natom;
 
   static string extractAndTrim(const string &s, const int a,const int b);

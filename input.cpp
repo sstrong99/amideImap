@@ -20,13 +20,15 @@ Input::Input(const string &inputfile) : outPostfix("")
 
     stringstream   linestream(line);
 
+    //TODO: throw error if command repeated, except when expected
+
     linestream >> key;
     if (key.compare("trajFile")==0)
       linestream >> trajFile;
     else if (key.compare("outPostfix")==0) {
       linestream >> outPostfix;
       outPostfix.insert(0,"_"); }
-    else if (key.compare("groFile")==0) 
+    else if (key.compare("groFile")==0)
       linestream >> groFile;
     else if (key.compare("itpFile")==0) {
       linestream >> tmpstr;

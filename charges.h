@@ -13,12 +13,10 @@ class Charges
   ~Charges();
 
   const float* getCharges() const { return charges; };
-  const bool* getExclude() const { return exclude; };
 
  private:
   int natom;
   float *charges;
-  bool  *exclude;
 
 };
 #endif

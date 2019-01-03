@@ -56,8 +56,6 @@ int main(int argc, const char *argv[])
   fclose(fEdiff);
   fclose(fDdiff);
 
-  //TODO: add output function to to calcW to print dipoles, energies
-
   string time = time_entire.getDHMS();
   printf("Completed in %s\n",time.c_str());
 

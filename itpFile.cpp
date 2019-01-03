@@ -38,7 +38,8 @@ ItpFile::ItpFile(const string &filename) {
 
       //get residue
       linestream >> entry;
-      res.push_back(entry);
+      //res.push_back(entry);
+      //don't need residue, b/c each type has specific charge
 
       //get type
       linestream >> entry;
@@ -58,8 +59,6 @@ ItpFile::ItpFile(const string &filename) {
   nTypes=ii;
 
   //TODO: could optimize this to remove redundant types
-
-  //TODO: check if type is only thing necessary for idenetifying charge
 }
 
 int ItpFile::findType(const string &s) const {

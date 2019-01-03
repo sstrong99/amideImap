@@ -26,7 +26,6 @@ class CalcW {
  private:
   const int nchrom;
   const float *q;
-  const bool *exclude;
   int ts;
 
   float *freq;

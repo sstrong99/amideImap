@@ -3,10 +3,9 @@
 #define NDIST 0.2  //Distance between C and N atom in nm
 
 CalcW::CalcW(const int nchrom, const Charges &chg) :
-  nchrom(nchrom), q(chg.getCharges()), exclude(chg.getExclude()),
+  nchrom(nchrom), q(chg.getCharges()),
   cut(2.0*A0INV), cut2(cut*cut), cutN(cut+NDIST*A0INV), cutN2(cutN*cutN)
 {
-  //TODO: convert tip3p to tip4p?
   freq   = new float[nchrom];
   CO     = new rvec[nchrom];
 }
@@ -15,6 +14,8 @@ CalcW::~CalcW() {
   delete[] freq;
   delete[] CO;
 }
+
+//TODO: only
 
 void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   const rvec  *x=traj.getCoords();
@@ -42,11 +43,13 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     d=sqrt(d2);
     multRvec(tmpCO,1.0/d);
 
+    //TODO: include NN peptide shifts
+
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
     for (jj=0; jj<natoms; jj++) {
-      if (exclude[jj])
+      if (false) //TODO: exclude NN peptides
 	continue;
 
       //get distance to C atom
