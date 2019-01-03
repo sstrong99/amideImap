@@ -10,11 +10,13 @@ Compare::Compare(const string &filename,const int nchrom) : filename(filename),
   }
 }
 
-void Compare::next() {
+void Compare::compare(const CalcW &calcW,FILE *fh) {
   if (!getline(file, line)) {
     printf("ERROR: no more lines in %s.\n",filename.c_str());
     exit(EXIT_FAILURE);
   }
 
-  readline();
+  this->readline();
+  this->calcDiff(calcW);
+  this->print(fh);
 }

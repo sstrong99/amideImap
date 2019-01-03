@@ -13,9 +13,12 @@ public:
 
 protected:
   void readline();
+  void calcDiff(const CalcW &calcW);
+  void print(FILE *fh);
 
 private:
   vector<float> energy;
+  vector<float> diff;
 };
 
 #endif

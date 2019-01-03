@@ -19,6 +19,10 @@ class CalcW {
   void compute(const Traj &traj, const vector<int> &inds);
   void print(FILE *fFreq, FILE *fDip);
 
+  float getCO(const int ii,const int jj) const {return CO[ii][jj];};
+  float getFreq(const int ii) const {return freq[ii];};
+  int getTS() const {return ts;};
+
  private:
   const int nchrom;
   const float *q;
