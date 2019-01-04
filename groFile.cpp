@@ -14,7 +14,6 @@ GroFile::GroFile(const string &filename) {
 
   //skip first line
   string line;
-  string tmp;
   getline(file,line);
 
   //get number of atoms
@@ -25,12 +24,16 @@ GroFile::GroFile(const string &filename) {
   resnum = new int[natom];
   chain  = new int[natom];
 
-  int ii=0;
-  string tmpres;
+  string tmp,tmpres;
   int resdiff;
   int chainid=0;
   int lastres=-1;
-  while(getline(file, line)) {
+  for (int ii=0; ii<natom; ii++) {
+    if (!getline(file,line)) {
+      printf("ERROR: number of atoms in gro file is incorrect.\n");
+      exit(EXIT_FAILURE);
+    }
+
     tmp = extractAndTrim(line,RES_ST,RES_L);
     size_t jj;
     for(jj = 0; jj < tmp.size(); jj++)
@@ -63,8 +66,6 @@ GroFile::GroFile(const string &filename) {
 	lastres=resnum[ii];
       }
     }
-
-    ii++;
   }
 }
 

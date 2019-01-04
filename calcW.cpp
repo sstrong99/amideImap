@@ -37,26 +37,28 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 
   rvec tmpCO, tmpvec, Cpos, tmpEn, tmpEc;
   float d2,d;
-  int thisChain,thisRes,nnL,nnR;
+  int thisAtom,thisChain,thisRes,nnL,nnR;
   //loop through labelled CO and calculate CO vec
   for (ii=0; ii<nchrom; ii++) {
-    setRvec(Cpos,x[inds[ii]]);
-    addRvec(Cpos,x[inds[ii]+1],tmpCO,-1);
+    thisAtom=inds[ii];
+    setRvec(Cpos,x[thisAtom]);
+    addRvec(Cpos,x[thisAtom+1],tmpCO,-1);
     pbc(tmpCO,box);
     setRvec(CO[ii],tmpCO);
     normalize(tmpCO);
 
-    thisChain=chain[ii];
+
 
     //include NN peptide shifts
     float nnfs = 0.0;
-    thisRes=resnum[ii];
+    thisRes=resnum[thisAtom];
+    thisChain=chain[thisAtom];
     nnL=thisRes-1;
     nnR=thisRes+1;
     uint a1,a2,Cnext;
-    a1=calcAngles(ii,thisRes,thisChain,x);
+    a1=calcAngles(thisAtom,thisRes,thisChain,x);
     //calculate angles for next resiude
-    Cnext=search(ii,thisRes+1,"C");
+    Cnext=search(thisAtom,thisRes+1,"C");
     a2=calcAngles(Cnext,thisRes+1,thisChain,x);
 
     nnfs += interp2(phi[a1],psi[a1],NtermShift);
@@ -128,7 +130,7 @@ uint CalcW::calcAngles(const int atomI, const int resI, const int chainI,
 
   //calculate psi: N-Ca-C-N
   setRvec(x1,x[search(atomI,resI,"N")  ]);
-  setRvec(x2,x[search(atomI,resI,"Ca") ]);
+  setRvec(x2,x[search(atomI,resI,"CA") ]);
   setRvec(x3,x[atomI                   ]);
   setRvec(x4,x[search(atomI,resI+1,"N")]);
   psi.push_back(calcDihedral(x1,x2,x3,x4));
@@ -136,7 +138,7 @@ uint CalcW::calcAngles(const int atomI, const int resI, const int chainI,
   //calculate phi: C-N-Ca-C
   setRvec(x1,x[search(atomI,resI-1,"C")]);
   setRvec(x2,x[search(atomI,resI,"N")  ]);
-  setRvec(x3,x[search(atomI,resI,"Ca") ]);
+  setRvec(x3,x[search(atomI,resI,"CA") ]);
   setRvec(x4,x[atomI                   ]);
   phi.push_back(calcDihedral(x1,x2,x3,x4));
 
@@ -179,10 +181,6 @@ float CalcW::calcDihedral(const rvec &x1, const rvec &x2,
   cross(b1,b2,n1);
   cross(b2,b3,n2);
 
-  //this returns angle between 0 and 180;
-  //return acosd(dot(n1,n2));
-
-  //this is the way to get angle from 0-360
   //see  https://math.stackexchange.com/a/47084
   rvec m1;
   cross(n1,b2,m1);
@@ -192,8 +190,11 @@ float CalcW::calcDihedral(const rvec &x1, const rvec &x2,
   d2=dot(m1,n2);
 
   //this returns answer in -180 to 180
-  float ans = ( atan2(d2,d1)/PI - 1.0) * 180;
+  float ans = atan2(d2,d1)*180.0/PI;
   return ans;
+
+  //this returns angle between 0 and 180;
+  //return acosd(dot(n1,n2));
 }
 
 void CalcW::normalize(rvec &v) {
@@ -210,7 +211,7 @@ float CalcW::interp2(const float &x, const float &y, const float z[]) {
   if (ny==nTheta-1) ny--;
 
   if (nx<0 || nx>=nTheta || ny<0 || ny>=nTheta) {
-    printf("ERROR: rama angles out of bounds.\n");
+    printf("ERROR: Ramachandran angles out of bounds.\n");
     exit(EXIT_FAILURE);
   }
 
