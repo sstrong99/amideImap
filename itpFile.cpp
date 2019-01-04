@@ -1,8 +1,6 @@
 #include "itpFile.h"
 
 ItpFile::ItpFile(const string &filename) {
-  printf("Reading file %s...\n",filename.c_str());
-
   ifstream file(filename);
   if (!file.good()) {
     printf("ERROR: Itp file %s cannot be read.\n",filename.c_str());

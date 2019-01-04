@@ -7,7 +7,7 @@ void CompareEnergy::readline() {
   stringstream linestream(line);
   linestream >> word;
   ts=stoi(word);
-  int skip=nchrom;
+  int skip=nchrom-1;
   for (int ii=0; ii<nchrom; ii++) {
     linestream >> word;
     energy[ii] = stof(word);

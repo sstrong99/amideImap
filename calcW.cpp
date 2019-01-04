@@ -111,6 +111,7 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   for (int ii=0; ii<nchrom; ii++) {
     fprintf(fFreq," %f",freq[ii]);
     for (int kk=0; kk<3; kk++) {
+      //TODO: for computing spectroscopy, need to print all x, then all y, etc.
       fprintf(fDip," %f",dip[ii][kk]);
     }
   }
@@ -237,5 +238,6 @@ float CalcW::interp2(const float &x, const float &y, const float z[]) {
   u=(x-xl)/(xh-xl);
   t=(y-yl)/(yh-yl);
 
-  return (1-t)*(1-u)*z1 + t*(1-u)*z2 + t*u*z3 + (1-t)*u*z4;
+  float ans=(1-t)*(1-u)*z1 + t*(1-u)*z2 + t*u*z3 + (1-t)*u*z4;
+  return ans;
 }
