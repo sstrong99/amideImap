@@ -23,7 +23,7 @@ void CompareDipole::calcDiff(const CalcW &calcW) {
 
   for (int ii=0; ii<nchrom; ii++)
     for (int jj=0; jj<3; jj++)
-      diff[ii][jj]=calcW.getCO(ii,jj)/dipole[ii][jj];
+      diff[ii][jj]=calcW.getDip(ii,jj)/dipole[ii][jj];
 }
 
 void CompareDipole::print(FILE *fh) {

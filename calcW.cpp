@@ -6,12 +6,12 @@ CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
   resnum(gro.getResNum()), chain(gro.getChain()),q(chg.getCharges())
 {
   freq   = new float[nchrom];
-  CO     = new rvec[nchrom];
+  dip     = new rvec[nchrom];
 }
 
 CalcW::~CalcW() {
   delete[] freq;
-  delete[] CO;
+  delete[] dip;
 }
 
 //needed due to a flaw in c++11
@@ -35,19 +35,24 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     exit(EXIT_FAILURE);
   }
 
-  rvec tmpCO, tmpvec, Cpos, tmpEn, tmpEc;
+  rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
   float d2,d;
   int thisAtom,thisChain,thisRes,nnL,nnR;
-  //loop through labelled CO and calculate CO vec
+  //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
     thisAtom=inds[ii];
     setRvec(Cpos,x[thisAtom]);
-    addRvec(Cpos,x[thisAtom+1],tmpCO,-1);
-    pbc(tmpCO,box);
-    setRvec(CO[ii],tmpCO);
-    normalize(tmpCO);
+    addRvec(x[thisAtom+1],Cpos,vecCO,-1); //points towards oxygen (rO-rC)
+    pbc(vecCO,box);
+    normalize(vecCO);
 
+    setRvec(Npos,x[thisAtom+2]);
+    addRvec(Npos,Cpos,vecCN,-1); //points towards N (rN-rC)
+    pbc(vecCN,box);
+    normalize(vecCN);
 
+    calcTD(Cpos,vecCO,vecCN,Npos,tmpvec);
+    setRvec(dip[ii],tmpvec);
 
     //include NN peptide shifts
     float nnfs = 0.0;
@@ -58,8 +63,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     uint a1,a2,Cnext;
     a1=calcAngles(thisAtom,thisRes,thisChain,x);
     //calculate angles for next resiude
-    Cnext=search(thisAtom,thisRes+1,"C");
-    a2=calcAngles(Cnext,thisRes+1,thisChain,x);
+    Cnext=search(thisAtom,nnR,"C");
+    a2=calcAngles(Cnext,nnR,thisChain,x);
 
     nnfs += interp2(phi[a1],psi[a1],NtermShift);
     nnfs += interp2(phi[a2],psi[a2],CtermShift);
@@ -68,10 +73,10 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
     for (jj=0; jj<natoms; jj++) {
-      //exclude NN peptides
+      //exclude self and NN peptides
       //TODO: should NN side chains be excluded?
       if (thisChain==chain[jj] &&
-	  (resnum[jj]==nnL || resnum[jj]==nnR) )
+	  (resnum[jj]==nnL || resnum[jj]==nnR || resnum[jj]==thisRes) )
 	continue;
 
       //get distance to C atom
@@ -86,7 +91,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	}
 
 	//now test if N is within cutoff
-	addRvec(x[inds[ii]+2],x[jj],tmpvec,-1); //N to jj
+	addRvec(Npos,x[jj],tmpvec,-1); //N to jj
 	pbc(tmpvec,box);
 	d2=norm2vec(tmpvec);
 	if (d2 < cut2) {
@@ -96,7 +101,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	}
       }
     }
-    freq[ii] = map(dot(tmpEc,tmpCO), dot(tmpEn,tmpCO)) + nnfs;
+    freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
 }
 
@@ -106,7 +111,7 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   for (int ii=0; ii<nchrom; ii++) {
     fprintf(fFreq," %f",freq[ii]);
     for (int kk=0; kk<3; kk++) {
-      fprintf(fDip," %f",CO[ii][kk]);
+      fprintf(fDip," %f",dip[ii][kk]);
     }
   }
   fprintf(fFreq,"\n");

@@ -15,14 +15,14 @@ inline void setRvec(rvec &v, const float val)
 inline void setRvec(rvec &v, const rvec val)
 { for (int ii=0; ii<DIM; ii++) v[ii]=val[ii]; };
 
-inline void addRvec(const rvec &v1, const rvec &v2, rvec &v, int sgn) {
+inline void addRvec(const rvec &v1, const rvec &v2, rvec &v, const float &scl) {
 //sgn=-1 for subtraction
-  for (int ii=0; ii<DIM; ii++) v[ii]=v1[ii]+sgn*v2[ii];
+  for (int ii=0; ii<DIM; ii++) v[ii]=v1[ii]+scl*v2[ii];
 };
 
-inline void addRvec(const rvec &v1, rvec &v, int sgn) {
+inline void addRvec(const rvec &v1, rvec &v, const float &scl) {
 //sgn=-1 for subtraction
-  for (int ii=0; ii<DIM; ii++) v[ii]+=sgn*v1[ii];
+  for (int ii=0; ii<DIM; ii++) v[ii]+=scl*v1[ii];
 };
 
 inline void multRvec(rvec &v, float scalar)
