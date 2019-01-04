@@ -1,11 +1,9 @@
 #include "calcW.h"
 
-#define NDIST 0.2  //Distance between C and N atom in nm
 
 CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
-  nchrom(nchrom), q(chg.getCharges()), type(gro.getType()),
-  res(gro.getRes()), resnum(gro.getResNum()), chain(gro.getChain()),
-  cut(2.0*A0INV), cut2(cut*cut), cutN(cut+NDIST*A0INV), cutN2(cutN*cutN)
+  nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),res(gro.getRes()),
+  resnum(gro.getResNum()), chain(gro.getChain()),q(chg.getCharges())
 {
   freq   = new float[nchrom];
   CO     = new rvec[nchrom];
@@ -16,9 +14,12 @@ CalcW::~CalcW() {
   delete[] CO;
 }
 
+//needed due to a flaw in c++11
+constexpr float CalcW::NtermShift[169];
+constexpr float CalcW::CtermShift[169];
+
 void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   const rvec  *x=traj.getCoords();
-  rvec box;
   traj.getBox(box);
   ts=traj.getNT()-1;
   int ii,jj;
@@ -29,9 +30,13 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
       exit(EXIT_FAILURE);
     }
 
+  if (traj.getNatoms() != natoms) {
+    printf("ERROR: gro file does not have the same number of atoms as traj.\n");
+    exit(EXIT_FAILURE);
+  }
+
   rvec tmpCO, tmpvec, Cpos, tmpEn, tmpEc;
   float d2,d;
-  int natoms = traj.getNatoms();
   int thisChain,thisRes,nnL,nnR;
   //loop through labelled CO and calculate CO vec
   for (ii=0; ii<nchrom; ii++) {
@@ -39,17 +44,23 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     addRvec(Cpos,x[inds[ii]+1],tmpCO,-1);
     pbc(tmpCO,box);
     setRvec(CO[ii],tmpCO);
-    d2=norm2vec(tmpCO);
-    d=sqrt(d2);
-    multRvec(tmpCO,1.0/d);
+    normalize(tmpCO);
 
     thisChain=chain[ii];
 
     //include NN peptide shifts
+    float nnfs = 0.0;
     thisRes=resnum[ii];
     nnL=thisRes-1;
     nnR=thisRes+1;
-    calcAngles(ii,thisRes,thisChain);
+    uint a1,a2,Cnext;
+    a1=calcAngles(ii,thisRes,thisChain,x);
+    //calculate angles for next resiude
+    Cnext=search(ii,thisRes+1,"C");
+    a2=calcAngles(Cnext,thisRes+1,thisChain,x);
+
+    nnfs += interp2(phi[a1],psi[a1],NtermShift);
+    nnfs += interp2(phi[a2],psi[a2],CtermShift);
 
     //loop through other atoms
     setRvec(tmpEn,0.0);
@@ -83,7 +94,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	}
       }
     }
-    freq[ii] = 1618 + 7729*dot(tmpEc,tmpCO) - 3576*dot(tmpEn,tmpCO);
+    freq[ii] = map(dot(tmpEc,tmpCO), dot(tmpEn,tmpCO)) + nnfs;
   }
 }
 
@@ -100,7 +111,8 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   fprintf(fDip,"\n");
 }
 
-uint CalcW::calcAngles(const int atomI, const int resI, const int chainI) {
+uint CalcW::calcAngles(const int atomI, const int resI, const int chainI,
+		       const rvec *x) {
   //check if already calculated this angle
   uint ind;
   for (ind=0; ind<angleID.size(); ind++)
@@ -111,5 +123,113 @@ uint CalcW::calcAngles(const int atomI, const int resI, const int chainI) {
 
   angleID.push_back(resI);
   angleCID.push_back(chainI);
-  calc1angle(
+
+  rvec x1,x2,x3,x4;
+
+  //calculate psi: N-Ca-C-N
+  setRvec(x1,x[search(atomI,resI,"N")  ]);
+  setRvec(x2,x[search(atomI,resI,"Ca") ]);
+  setRvec(x3,x[atomI                   ]);
+  setRvec(x4,x[search(atomI,resI+1,"N")]);
+  psi.push_back(calcDihedral(x1,x2,x3,x4));
+
+  //calculate phi: C-N-Ca-C
+  setRvec(x1,x[search(atomI,resI-1,"C")]);
+  setRvec(x2,x[search(atomI,resI,"N")  ]);
+  setRvec(x3,x[search(atomI,resI,"Ca") ]);
+  setRvec(x4,x[atomI                   ]);
+  phi.push_back(calcDihedral(x1,x2,x3,x4));
+
+  return angleID.size()-1;
+}
+
+uint CalcW::search(const int st, const int resI, const string &whichtype) {
+  if (resI>resnum[st]) {  //search forward
+    for (int ii=st+1; ii<natoms; ii++)
+      if (type[ii].compare(whichtype)==0 && chain[ii]==chain[st])
+	return ii;
+  } else {             //search backward
+    for (int ii=st-1; ii>=0; ii--)
+      if (type[ii].compare(whichtype)==0 && chain[ii]==chain[st])
+	return ii;
+  }
+
+  //didn't find type
+  printf("ERROR: failed to find dihedral. Might be at end of chain.\n");
+  exit(EXIT_FAILURE);
+}
+
+float CalcW::calcDihedral(const rvec &x1, const rvec &x2,
+			  const rvec &x3, const rvec &x4) {
+  rvec b1,b2,b3;
+  addRvec(x2,x1,b1,-1);
+  addRvec(x3,x2,b2,-1);
+  addRvec(x4,x3,b3,-1);
+
+  //just for generality, even though in KcsA case protein is in center of box
+  pbc(b1,box);
+  pbc(b2,box);
+  pbc(b3,box);
+
+  normalize(b1);
+  normalize(b2);
+  normalize(b3);
+
+  rvec n1,n2;
+  cross(b1,b2,n1);
+  cross(b2,b3,n2);
+
+  //this returns angle between 0 and 180;
+  //return acosd(dot(n1,n2));
+
+  //this is the way to get angle from 0-360
+  //see  https://math.stackexchange.com/a/47084
+  rvec m1;
+  cross(n1,b2,m1);
+
+  float d1,d2;
+  d1=dot(n1,n2);
+  d2=dot(m1,n2);
+
+  //this returns answer in -180 to 180
+  float ans = ( atan2(d2,d1)/PI - 1.0) * 180;
+  return ans;
+}
+
+void CalcW::normalize(rvec &v) {
+  float norm=sqrt(norm2vec(v));
+  multRvec(v,1.0/norm);
+}
+
+float CalcW::interp2(const float &x, const float &y, const float z[]) {
+  int nx=(int) (x+180.0)/dTheta;
+  int ny=(int) (y+180.0)/dTheta;
+
+  //account for case when x or y == +180
+  if (nx==nTheta-1) nx--;
+  if (ny==nTheta-1) ny--;
+
+  if (nx<0 || nx>=nTheta || ny<0 || ny>=nTheta) {
+    printf("ERROR: rama angles out of bounds.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  //corner points surrounding query point
+  float xl,xh,yl,yh;
+  xl=nx*dTheta-180.0;
+  xh=xl+dTheta;
+  yl=ny*dTheta-180.0;
+  yh=yl+dTheta;
+
+  //shift values at corners
+  float z1,z2,z3,z4,u,t;
+  z1=z[ny    *nTheta + nx  ];
+  z2=z[(ny+1)*nTheta + nx  ];
+  z3=z[(ny+1)*nTheta + nx+1];
+  z4=z[ny    *nTheta + nx+1];
+
+  u=(x-xl)/(xh-xl);
+  t=(y-yl)/(yh-yl);
+
+  return (1-t)*(1-u)*z1 + t*(1-u)*z2 + t*u*z3 + (1-t)*u*z4;
 }
