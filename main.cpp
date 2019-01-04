@@ -28,12 +28,7 @@ int main(int argc, const char *argv[])
   printf("Computing Frequencies...\n");
 
   //get indicies of C=O using gro.findCarboxyl(res,num)
-  vector<int> indC;
-  vector<int> tmp;
-  for (int ii=0; ii<input.getNres(); ii++) {
-    tmp=gro.findCarboxyl(input.getResNames(ii),input.getResNums(ii));
-    indC.insert( indC.end(), tmp.begin(), tmp.end() );
-  };
+  vector<int> indC = gro.getChromList(input,4);
 
   //init calcW
   int nchrom = indC.size();

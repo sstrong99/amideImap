@@ -1,6 +1,8 @@
 #ifndef GROFILE_H
 #define GROFILE_H
 
+#include "input.h"
+
 #include <sstream>
 #include <fstream>
 #include <string>
@@ -21,7 +23,8 @@ class GroFile
 
   inline int    getNatom() const {return natom;}
 
-  vector<int> findCarboxyl(const string &whichRes,const int whichNum) const;
+  vector<int> getChromList(const Input &input, const int nchain) const;
+
 
  private:
   string *type;
@@ -31,6 +34,9 @@ class GroFile
   int     natom;
 
   static string extractAndTrim(const string &s, const int a,const int b);
+
+  int findCarboxyl(const string &whichRes,const int whichNum,
+			   const int whichChain) const;
 };
 
 

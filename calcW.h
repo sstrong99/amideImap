@@ -71,12 +71,10 @@ class CalcW {
   { return 1618 + 7729*Ec - 3576*En; };
 
   //transition dipole map
-  static inline void calcTD(const rvec &rC, const rvec &rCO, const rvec &rCN,
-			      const rvec &rN, rvec &out) {
-    setRvec(out,rN);
-    addRvec(rC, out, -1.0);
-    addRvec(rCO, out,-1.256668); //constants converted to a0
-    addRvec(rCN, out,-0.487549);
+  static inline void calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
+    setRvec(out,rCO);
+    multRvec(out,0.665);  //fraction of CO to get 10deg
+    addRvec(rCN,out,0.258);
   }
 
   //from Jansen's AmideImap program

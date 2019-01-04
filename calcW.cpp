@@ -51,8 +51,12 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     pbc(vecCN,box);
     normalize(vecCN);
 
-    calcTD(Cpos,vecCO,vecCN,Npos,tmpvec);
+    calcTD(vecCO,vecCN,tmpvec);
+    normalize(tmpvec); //ignore magnitude of dip
     setRvec(dip[ii],tmpvec);
+
+    //TODO: 10 degrees off of CO???
+    //printf("%f\n",acos(dot(tmpvec,vecCO))*180.0/PI);
 
     //include NN peptide shifts
     float nnfs = 0.0;

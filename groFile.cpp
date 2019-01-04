@@ -90,19 +90,28 @@ string GroFile::extractAndTrim(const string &s, const int a, const int b) {
 }
 
 //return index of C atom, i think O atom is always i+1 from C atom
-vector<int> GroFile::findCarboxyl(const string &whichRes,const int whichNum) const {
-  vector<int> list;
+int GroFile::findCarboxyl(const string &whichRes,const int whichNum,
+				  const int whichChain) const {
   for (int ii=0; ii<natom; ii++)
-    if ( whichNum==resnum[ii] &&
+    if ( whichChain==chain[ii]        &&
+	 whichNum==resnum[ii]         &&
 	 whichRes.compare(res[ii])==0 &&
 	 type[ii].compare("C")==0 )
-      list.push_back(ii);
+      return ii;
 
-  if (list.size()==0) {
-    string err="ERROR: no "+whichRes+to_string(whichNum)+" residues found...\n";
-    printf("%s",err.c_str());
-    exit(EXIT_FAILURE);
-  }
+  //if reach this point didn't find residue
+  string err="ERROR: no "+whichRes+to_string(whichNum)+" residues found...\n";
+  printf("%s",err.c_str());
+  exit(EXIT_FAILURE);
+}
 
-  return list;
+vector<int> GroFile::getChromList(const Input &input, const int nchain) const {
+  int nres=input.getNres();
+  vector<int> indC(nchain*nres);
+  for (int jj=0; jj<nchain; jj++)
+    for (int ii=0; ii<nres; ii++)
+      indC[ii+nres*jj] = findCarboxyl(input.getResNames(ii),
+					  input.getResNums(ii) , jj);
+
+  return indC;
 }

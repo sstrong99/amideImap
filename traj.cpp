@@ -3,8 +3,6 @@
 using namespace std;
 Traj::Traj(const char *xtcfile)
 {
-  printf("Opening trajectory file %s...\n",xtcfile);
-
   //get number of atoms
   read_xtc_natoms((char*)xtcfile,&natoms);
 
