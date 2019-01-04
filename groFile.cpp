@@ -6,6 +6,8 @@
 #define TYP_L  6
 
 GroFile::GroFile(const string &filename) {
+  printf("Reading file %s...\n",filename.c_str());
+
   ifstream file(filename);
   if (!file.good()) {
     printf("ERROR: Gro file %s cannot be read.\n",filename.c_str());

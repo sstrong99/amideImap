@@ -3,10 +3,15 @@
 Charges::Charges(const Input &input,const GroFile &gro) :
   type(gro.getType()), res(gro.getRes())
 {
+  //read all itp files
   int nITP=input.getNitp();
   std::vector<ItpFile>  itps;
   for (int ii=0; ii<nITP; ii++)
     itps.push_back(ItpFile(input.getITPfile(ii)));
+
+
+  //find charges for each atom in gro
+  printf("Finding Charges...\n");
 
   natom = gro.getNatom();
   charges = new float[natom];

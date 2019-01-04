@@ -25,6 +25,8 @@ int main(int argc, const char *argv[])
   Charges charges(input,gro);
   Traj traj((input.getTrajFile()).c_str());
 
+  printf("Computing Frequencies...\n");
+
   //get indicies of C=O using gro.findCarboxyl(res,num)
   vector<int> indC;
   vector<int> tmp;
