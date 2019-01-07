@@ -41,22 +41,18 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
     thisAtom=inds[ii];
-    setRvec(Cpos,x[thisAtom]);
-    addRvec(x[thisAtom+1],Cpos,vecCO,-1); //points towards oxygen (rO-rC)
+    copyRvec(x[thisAtom],Cpos);
+    addRvec(x[thisAtom+1],Cpos,vecCO,-1); //points towards O (rO-rC)
     pbc(vecCO,box);
     normalize(vecCO);
 
-    setRvec(Npos,x[thisAtom+2]);
+    copyRvec(x[thisAtom+2],Npos);
     addRvec(Npos,Cpos,vecCN,-1); //points towards N (rN-rC)
     pbc(vecCN,box);
     normalize(vecCN);
 
     calcTD(vecCO,vecCN,tmpvec);
-    normalize(tmpvec); //ignore magnitude of dip
-    setRvec(dip[ii],tmpvec);
-
-    //TODO: 10 degrees off of CO???
-    //printf("%f\n",acos(dot(tmpvec,vecCO))*180.0/PI);
+    copyRvec(tmpvec,dip[ii]);
 
     //include NN peptide shifts
     float nnfs = 0.0;
@@ -87,8 +83,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
       addRvec(Cpos,x[jj],tmpvec,-1);
       pbc(tmpvec,box);
       d2=norm2vec(tmpvec);
-      if (d2 < cutN2) { //1st check if either C or N could be within cutoff
-	if (d2 < cut2) { //now check if C is within cutoff
+      if (true) {//d2 < cutN2) { //1st check if either C or N could be within cutoff
+	if (true) {//d2 < cut2) { //now check if C is within cutoff
 	  d=sqrt(d2);
 	  multRvec(tmpvec, q[jj]/(d*d*d) );
 	  addRvec(tmpvec,tmpEc,+1);
@@ -98,7 +94,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	addRvec(Npos,x[jj],tmpvec,-1); //N to jj
 	pbc(tmpvec,box);
 	d2=norm2vec(tmpvec);
-	if (d2 < cut2) {
+	if (true) {//d2 < cut2) {
 	  d=sqrt(d2);
 	  multRvec(tmpvec, q[jj]/(d*d*d) );
 	  addRvec(tmpvec,tmpEn,+1);
@@ -110,16 +106,17 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 }
 
 void CalcW::print(FILE *fFreq, FILE *fDip) {
+  //frequencies
   fprintf(fFreq,"%d",ts);
-  fprintf(fDip,"%d",ts);
-  for (int ii=0; ii<nchrom; ii++) {
+  for (int ii=0; ii<nchrom; ii++)
     fprintf(fFreq," %f",freq[ii]);
-    for (int kk=0; kk<3; kk++) {
-      //TODO: for computing spectroscopy, need to print all x, then all y, etc.
-      fprintf(fDip," %f",dip[ii][kk]);
-    }
-  }
   fprintf(fFreq,"\n");
+
+  //dipole moments (order: all x components, all y comp, all z comp)
+  fprintf(fDip,"%d",ts);
+  for (int kk=0; kk<DIM; kk++)
+    for (int ii=0; ii<nchrom; ii++)
+      fprintf(fDip," %f",dip[ii][kk]);
   fprintf(fDip,"\n");
 }
 
@@ -139,17 +136,17 @@ uint CalcW::calcAngles(const int atomI, const int resI, const int chainI,
   rvec x1,x2,x3,x4;
 
   //calculate psi: N-Ca-C-N
-  setRvec(x1,x[search(atomI,resI,"N")  ]);
-  setRvec(x2,x[search(atomI,resI,"CA") ]);
-  setRvec(x3,x[atomI                   ]);
-  setRvec(x4,x[search(atomI,resI+1,"N")]);
+  copyRvec(x[search(atomI,resI,"N")  ],x1);
+  copyRvec(x[search(atomI,resI,"CA") ],x2);
+  copyRvec(x[atomI                   ],x3);
+  copyRvec(x[search(atomI,resI+1,"N")],x4);
   psi.push_back(calcDihedral(x1,x2,x3,x4));
 
   //calculate phi: C-N-Ca-C
-  setRvec(x1,x[search(atomI,resI-1,"C")]);
-  setRvec(x2,x[search(atomI,resI,"N")  ]);
-  setRvec(x3,x[search(atomI,resI,"CA") ]);
-  setRvec(x4,x[atomI                   ]);
+  copyRvec(x[search(atomI,resI-1,"C")],x1);
+  copyRvec(x[search(atomI,resI,"N")  ],x2);
+  copyRvec(x[search(atomI,resI,"CA") ],x3);
+  copyRvec(x[atomI                   ],x4);
   phi.push_back(calcDihedral(x1,x2,x3,x4));
 
   return angleID.size()-1;
@@ -207,7 +204,7 @@ float CalcW::calcDihedral(const rvec &x1, const rvec &x2,
   //return acosd(dot(n1,n2));
 }
 
-void CalcW::normalize(rvec &v) {
+inline void CalcW::normalize(rvec &v) {
   float norm=sqrt(norm2vec(v));
   multRvec(v,1.0/norm);
 }
@@ -244,4 +241,22 @@ float CalcW::interp2(const float &x, const float &y, const float z[]) {
 
   float ans=(1-t)*(1-u)*z1 + t*(1-u)*z2 + t*u*z3 + (1-t)*u*z4;
   return ans;
+}
+
+void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
+  rvec n1,n2;
+  cross(rCO,rCN,n1);  //n1: normal to OCN plane
+  cross(n1,rCO,n2);   //n2: perpendicular to CO, in direction of N
+  normalize(n2);
+
+  copyRvec(n2,out);
+  multRvec(out,sin(tdAngle));
+  addRvec(rCO,out,-cos(tdAngle)); //reverse CO vector
+
+  normalize(out);
+
+  //test that angle is correct (10deg)
+  //printf("angle = %f\n",acos(dot(out,rCO))*180.0/PI);
+
+  multRvec(out,2.73); //magintude of td in D/A/amu^1/2
 }

@@ -20,8 +20,6 @@ public:
   Traj(const char *xtcfile);
   ~Traj();
   int next(const bool convertFlag=true);
-  float allT();
-  void skip(const int n);
 
   int getNatoms() const {return natoms;};
   int getNT() const {return nT;};
@@ -29,9 +27,6 @@ public:
 
   const rvec* getCoords() const { return x; };
   void getBox(rvec &box) const;
-  void moveM(const float &frac,const int aPerM);
-
-  int getModel() const;
 
 private:
   XDRFILE *trj;   //pointer to file

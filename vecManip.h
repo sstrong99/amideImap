@@ -6,14 +6,11 @@
 #include <cstdlib>
 #include <cmath>
 
-inline void getRvec(const rvec &M, rvec &out)
+inline void copyRvec(const rvec &M, rvec &out)
 { for (int ii=0; ii<DIM; ii++) out[ii]=M[ii]; };
 
 inline void setRvec(rvec &v, const float val)
 { for (int ii=0; ii<DIM; ii++) v[ii]=val; };
-
-inline void setRvec(rvec &v, const rvec val)
-{ for (int ii=0; ii<DIM; ii++) v[ii]=val[ii]; };
 
 inline void addRvec(const rvec &v1, const rvec &v2, rvec &v, const float &scl) {
 //sgn=-1 for subtraction

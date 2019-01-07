@@ -7,7 +7,7 @@ void CompareDipole::readline() {
   stringstream linestream(line);
   linestream >> word;
   ts=stoi(word);
-  for (int jj=0; jj<3; jj++) {
+  for (int jj=0; jj<DIM; jj++) {
     for (int ii=0; ii<nchrom; ii++) {
       linestream >> word;
       dipole[ii][jj]=stof(word);
@@ -22,14 +22,14 @@ void CompareDipole::calcDiff(const CalcW &calcW) {
   }
 
   for (int ii=0; ii<nchrom; ii++)
-    for (int jj=0; jj<3; jj++)
+    for (int jj=0; jj<DIM; jj++)
       diff[ii][jj]=calcW.getDip(ii,jj)/dipole[ii][jj];
 }
 
 void CompareDipole::print(FILE *fh) {
   fprintf(fh,"%d",ts);
   for (int ii=0; ii<nchrom; ii++)
-    for (int jj=0; jj<3; jj++)
+    for (int jj=0; jj<DIM; jj++)
       fprintf(fh," %f",diff[ii][jj]);
   fprintf(fh,"\n");
 }
