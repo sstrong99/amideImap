@@ -3,7 +3,9 @@
 
 CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),res(gro.getRes()),
-  resnum(gro.getResNum()), chain(gro.getChain()),q(chg.getCharges())
+  resnum(gro.getResNum()), chain(gro.getChain()), nres(gro.getNres()),
+  resnumAll(gro.getResNumAll()), atomsInRes(gro.getAtomsInRes()),
+  q(chg.getCharges())
 {
   freq   = new float[nchrom];
   dip     = new rvec[nchrom];
@@ -35,6 +37,10 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     exit(EXIT_FAILURE);
   }
 
+  //get centers of geometry
+  rvec *cog = new rvec[nres];
+  calcCOG(x,cog);
+
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
   float d2,d;
   int thisAtom,thisChain,thisRes,nnL,nnR;
@@ -57,7 +63,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     //include NN peptide shifts
     float nnfs = 0.0;
     thisRes=resnum[thisAtom];
-    thisChain=chain[thisAtom];
+    thisChain=chain[thisAtom]; //TODO: might not need chain ID with resnumAll
     nnL=thisRes-1;
     nnR=thisRes+1;
     uint a1,a2,Cnext;
@@ -79,12 +85,13 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	  (resnum[jj]==nnL || resnum[jj]==nnR || resnum[jj]==thisRes) )
 	continue;
 
+      //TODO: which atom is the cutoff with respect to?
       //get distance to C atom
       addRvec(Cpos,x[jj],tmpvec,-1);
       pbc(tmpvec,box);
       d2=norm2vec(tmpvec);
-      if (true) {//d2 < cutN2) { //1st check if either C or N could be within cutoff
-	if (true) {//d2 < cut2) { //now check if C is within cutoff
+      if (d2 < cutN2) { //1st check if either C or N could be within cutoff
+	if (d2 < cut2) { //now check if C is within cutoff
 	  d=sqrt(d2);
 	  multRvec(tmpvec, q[jj]/(d*d*d) );
 	  addRvec(tmpvec,tmpEc,+1);
@@ -94,7 +101,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	addRvec(Npos,x[jj],tmpvec,-1); //N to jj
 	pbc(tmpvec,box);
 	d2=norm2vec(tmpvec);
-	if (true) {//d2 < cut2) {
+	if (d2 < cut2) {
 	  d=sqrt(d2);
 	  multRvec(tmpvec, q[jj]/(d*d*d) );
 	  addRvec(tmpvec,tmpEn,+1);
@@ -103,6 +110,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     }
     freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
+
+  delete[] cog;
 }
 
 void CalcW::print(FILE *fFreq, FILE *fDip) {
@@ -259,4 +268,19 @@ void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
   //printf("angle = %f\n",acos(dot(out,rCO))*180.0/PI);
 
   multRvec(out,2.73); //magintude of td in D/A/amu^1/2
+}
+
+void CalcW::calcCOG(const rvec *x,rvec *cog) {
+  int jj,nthis;
+  int next=0;
+  rvec tmpcog;
+  for (int ii=0; ii<nres; ii++) {
+    nthis=atomsInRes[ii];
+    setRvec(tmpcog,0.0);
+    for (jj=0; jj<nthis; jj++)
+      addRvec(x[next+jj],tmpcog,1.0);
+    next+=nthis;
+    multRvec(tmpcog,1.0/nthis);
+    copyRvec(tmpcog,cog[ii]);
+  }
 }

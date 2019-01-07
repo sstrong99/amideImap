@@ -23,7 +23,7 @@ class CalcW {
   void print(FILE *fFreq, FILE *fDip);
 
   float getDip(const int ii,const int jj) const {return dip[ii][jj];};
-  float getFreq(const int ii) const {return freq[ii];};
+  float getFreq(const int ii) const { return freq[ii]; };
   int getTS() const {return ts;};
 
  private:
@@ -34,6 +34,10 @@ class CalcW {
   const string *res;
   const int    *resnum;
   const int    *chain;
+
+  const int    nres;
+  const int    *resnumAll;
+  const vector<int> atomsInRes;
 
   const float *q;
 
@@ -56,6 +60,7 @@ class CalcW {
 		     const rvec &, const rvec &);
   static inline void normalize(rvec &v);
   static float interp2(const float &, const float &, const float z[]);
+  void calcCOG(const rvec *x,rvec *cog);
 
   //**************************************************************************
   //MAP parameters

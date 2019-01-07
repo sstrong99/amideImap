@@ -26,10 +26,15 @@ GroFile::GroFile(const string &filename) {
   resnum = new int[natom];
   chain  = new int[natom];
 
+  resnumAll = new int[natom];
+
   string tmp,tmpres;
   int resdiff;
   int chainid=0;
   int lastres=-1;
+  int nres=0;
+  int nAtomIn=0;
+  string lastresname="NONE";
   for (int ii=0; ii<natom; ii++) {
     if (!getline(file,line)) {
       printf("ERROR: number of atoms in gro file is incorrect.\n");
@@ -46,7 +51,19 @@ GroFile::GroFile(const string &filename) {
     resnum[ii]= stoi(tmp.substr(0,jj));
 
     type[ii] = extractAndTrim(line,TYP_ST,TYP_L);
-    //number chains from 0-n
+
+    //number distinct residues/molecules
+    if (tmpres.compare(lastresname)!=0 && lastres!=resnum[ii]) {
+      resnumAll[ii]=nres++;
+      lastresname=tmpres;  //only update if different
+      atomsInRes.push_back(nAtomIn);
+      nAtomIn=0;
+    } else {
+      resnumAll[ii]=nres;
+      nAtomIn++;
+    }
+
+    //number protein chains from 0-n
     //-1 = not part of protein chain
     if (tmpres.compare("HOH")==0  ||
 	tmpres.compare("DPPC")==0 ||
@@ -76,6 +93,7 @@ GroFile::~GroFile() {
   delete[] res;
   delete[] resnum;
   delete[] chain;
+  delete[] resnumAll;
 }
 
 string GroFile::extractAndTrim(const string &s, const int a, const int b) {

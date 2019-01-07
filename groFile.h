@@ -22,6 +22,10 @@ class GroFile
   const int*    getChain()  const { return chain;  }
 
   inline int    getNatom() const {return natom;}
+  inline int    getNres()  const {return nres;}
+
+  const int*    getResNumAll() const { return resnumAll; }
+  const vector<int>    getAtomsInRes() const { return atomsInRes; }
 
   vector<int> getChromList(const Input &input, const int nchain) const;
 
@@ -31,7 +35,11 @@ class GroFile
   string *res;
   int    *resnum;
   int    *chain;
+  int    *resnumAll;
+
+  vector<int> atomsInRes;
   int     natom;
+  int     nres;
 
   static string extractAndTrim(const string &s, const int a,const int b);
 
