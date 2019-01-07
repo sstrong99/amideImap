@@ -43,7 +43,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
   float d2,d;
-  int thisAtom,thisChain,thisRes,nnL,nnR;
+  int thisAtom,thisRes,nnL,nnR;
   //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
     thisAtom=inds[ii];
@@ -62,15 +62,14 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 
     //include NN peptide shifts
     float nnfs = 0.0;
-    thisRes=resnum[thisAtom];
-    thisChain=chain[thisAtom]; //TODO: might not need chain ID with resnumAll
+    thisRes=resnumAll[thisAtom];
     nnL=thisRes-1;
     nnR=thisRes+1;
     uint a1,a2,Cnext;
-    a1=calcAngles(thisAtom,thisRes,thisChain,x);
+    a1=calcAngles(thisAtom,thisRes,x);
     //calculate angles for next resiude
     Cnext=search(thisAtom,nnR,"C");
-    a2=calcAngles(Cnext,nnR,thisChain,x);
+    a2=calcAngles(Cnext,nnR,x);
 
     nnfs += interp2(phi[a1],psi[a1],NtermShift);
     nnfs += interp2(phi[a2],psi[a2],CtermShift);
@@ -81,8 +80,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     for (jj=0; jj<natoms; jj++) {
       //exclude self and NN peptides
       //TODO: should NN side chains be excluded?
-      if (thisChain==chain[jj] &&
-	  (resnum[jj]==nnL || resnum[jj]==nnR || resnum[jj]==thisRes) )
+      if ( resnum[jj]==nnL || resnum[jj]==nnR || resnum[jj]==thisRes )
 	continue;
 
       //TODO: which atom is the cutoff with respect to?
@@ -129,18 +127,16 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   fprintf(fDip,"\n");
 }
 
-uint CalcW::calcAngles(const int atomI, const int resI, const int chainI,
-		       const rvec *x) {
+uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x) {
   //check if already calculated this angle
   uint ind;
   for (ind=0; ind<angleID.size(); ind++)
-    if (angleID[ind]==resI && angleCID[ind]==chainI)
+    if (angleID[ind]==resI)
       break;
   if (ind != angleID.size())
     return ind;
 
   angleID.push_back(resI);
-  angleCID.push_back(chainI);
 
   rvec x1,x2,x3,x4;
 

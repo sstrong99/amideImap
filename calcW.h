@@ -31,8 +31,8 @@ class CalcW {
 
   const int    natoms;
   const string *type;
-  const string *res;
-  const int    *resnum;
+  const string *res;   //TODO: I don't think this is used
+  const int    *resnum;//TODO: I think this is replaced by resnumAll
   const int    *chain;
 
   const int    nres;
@@ -49,12 +49,10 @@ class CalcW {
   rvec  *dip;      //transition dipole moments
 
   vector<int> angleID;
-  vector<int> angleCID;
   vector<float> phi;
   vector<float> psi;
 
-  uint calcAngles(const int atomI, const int resI, const int chainI,
-		  const rvec *x);
+  uint calcAngles(const int atomI, const int resI, const rvec *x);
   uint search(const int st, const int resI, const string &whichtype);
   float calcDihedral(const rvec &, const rvec &,
 		     const rvec &, const rvec &);
