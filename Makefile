@@ -1,7 +1,7 @@
 #On Midway, first load modules:
 #module load gcc/4.8 cuda/8.0 mkl/2017
 
-exe     = amideI_ses
+exe     = amideIcog
 CXX     = g++
 
 HOST=$(firstword $(subst -, ,$(shell hostname)))
