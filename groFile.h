@@ -26,6 +26,7 @@ class GroFile
 
   const int*    getResNumAll() const { return resnumAll; }
   const vector<int>    getAtomsInRes() const { return atomsInRes; }
+  const vector<int>    getResSt() const { return resSt; }
 
   vector<int> getChromList(const Input &input, const int nchain) const;
 
@@ -38,6 +39,7 @@ class GroFile
   int    *resnumAll;
 
   vector<int> atomsInRes;
+  vector<int> resSt;
   int     natom;
   int     nres;
 

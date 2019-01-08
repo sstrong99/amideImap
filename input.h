@@ -14,11 +14,11 @@ public:
 
   int    getNitp() const { return itpFiles.size(); }
   string getITPfile(const int ii) const;
-  
-  int    getNres() const { return resNames.size(); }
+
+  int    getNchrom() const { return resNames.size(); }
   string getResNames(const int ii) const;
   int    getResNums(const int ii)  const;
-  
+
   string getTrajFile() const {return trajFile;};
   string getOutPostfix() const {return outPostfix;};
   string getGroFile() const {return groFile;};

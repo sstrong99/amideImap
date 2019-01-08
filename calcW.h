@@ -38,6 +38,7 @@ class CalcW {
   const int    nres;
   const int    *resnumAll;
   const vector<int> atomsInRes;
+  const vector<int> resSt;
 
   const float *q;
 

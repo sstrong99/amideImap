@@ -28,13 +28,12 @@ GroFile::GroFile(const string &filename) {
 
   resnumAll = new int[natom];
 
-  string tmp,tmpres;
-  int resdiff;
+  string tmp,tmpres,lastresname;
+  int resdiff,lastres;
   int chainid=0;
-  int lastres=-1;
-  int nres=0;
   int nAtomIn=0;
-  string lastresname="NONE";
+  int thisResSt=0;
+  nres=0;
   for (int ii=0; ii<natom; ii++) {
     if (!getline(file,line)) {
       printf("ERROR: number of atoms in gro file is incorrect.\n");
@@ -52,11 +51,19 @@ GroFile::GroFile(const string &filename) {
 
     type[ii] = extractAndTrim(line,TYP_ST,TYP_L);
 
+    //init vars on first atom
+    if (ii==0) {
+      lastres=resnum[ii];
+      lastresname=tmpres;
+    }
+
     //number distinct residues/molecules
     if (tmpres.compare(lastresname)!=0 && lastres!=resnum[ii]) {
       resnumAll[ii]=nres++;
       lastresname=tmpres;  //only update if different
       atomsInRes.push_back(nAtomIn);
+      resSt.push_back(thisResSt);
+      thisResSt+=nAtomIn;
       nAtomIn=0;
     } else {
       resnumAll[ii]=nres;
@@ -72,18 +79,12 @@ GroFile::GroFile(const string &filename) {
     {
       chain[ii]=-1;
     } else {
-      //if first protein atom
-      if (lastres==-1) {
-	lastres=resnum[ii];
+      resdiff=resnum[ii]-lastres;
+      if (resdiff==0 || resdiff==1)
 	chain[ii]=chainid;
-      } else {
-	resdiff=resnum[ii]-lastres;
-	if (resdiff==0 || resdiff==1)
-	  chain[ii]=chainid;
-	else
-	  chain[ii]=++chainid;
-	lastres=resnum[ii];
-      }
+      else
+	chain[ii]=++chainid;
+      lastres=resnum[ii];
     }
   }
 }
@@ -124,12 +125,12 @@ int GroFile::findCarboxyl(const string &whichRes,const int whichNum,
 }
 
 vector<int> GroFile::getChromList(const Input &input, const int nchain) const {
-  int nres=input.getNres();
-  vector<int> indC(nchain*nres);
+  int nchrom=input.getNchrom();
+  vector<int> indC(nchain*nchrom);
   for (int jj=0; jj<nchain; jj++)
-    for (int ii=0; ii<nres; ii++)
-      indC[ii+nres*jj] = findCarboxyl(input.getResNames(ii),
-					  input.getResNums(ii) , jj);
+    for (int ii=0; ii<nchrom; ii++)
+      indC[ii+nchrom*jj] = findCarboxyl(input.getResNames(ii),
+					input.getResNums(ii) , jj);
 
   return indC;
 }

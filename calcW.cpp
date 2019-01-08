@@ -5,7 +5,7 @@ CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),res(gro.getRes()),
   resnum(gro.getResNum()), chain(gro.getChain()), nres(gro.getNres()),
   resnumAll(gro.getResNumAll()), atomsInRes(gro.getAtomsInRes()),
-  q(chg.getCharges())
+  resSt(gro.getResSt()), q(chg.getCharges())
 {
   freq   = new float[nchrom];
   dip     = new rvec[nchrom];
@@ -42,8 +42,10 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   calcCOG(x,cog);
 
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
+  rvec tmpcog;
   float d2,d;
   int thisAtom,thisRes,nnL,nnR;
+  int kk;
   //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
     thisAtom=inds[ii];
@@ -59,6 +61,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 
     calcTD(vecCO,vecCN,tmpvec);
     copyRvec(tmpvec,dip[ii]);
+
+    copyRvec(cog[resnumAll[ii]],tmpcog);
 
     //include NN peptide shifts
     float nnfs = 0.0;
@@ -77,32 +81,38 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
-    for (jj=0; jj<natoms; jj++) {
+    for (jj=0; jj<nres; jj++) {
       //exclude self and NN peptides
-      //TODO: should NN side chains be excluded?
-      if ( resnum[jj]==nnL || resnum[jj]==nnR || resnum[jj]==thisRes )
+      //TODO: should NN side chains be excluded, or just backbone?
+      if ( jj==nnL || jj==nnR || jj==thisRes )
 	continue;
 
       //TODO: which atom is the cutoff with respect to?
       //get distance to C atom
-      addRvec(Cpos,x[jj],tmpvec,-1);
+      //addRvec(Cpos,x[jj],tmpvec,-1);
+      //get distance to COG
+      addRvec(tmpcog,cog[jj],tmpvec,-1);
       pbc(tmpvec,box);
       d2=norm2vec(tmpvec);
-      if (d2 < cutN2) { //1st check if either C or N could be within cutoff
-	if (d2 < cut2) { //now check if C is within cutoff
-	  d=sqrt(d2);
-	  multRvec(tmpvec, q[jj]/(d*d*d) );
-	  addRvec(tmpvec,tmpEc,+1);
-	}
+      if (d2 < cut2) {
+	for (kk=resSt[jj]; kk<resSt[jj]+atomsInRes[jj]; kk++) {
+	  if (q[kk]) {
+	    //calc Ec
+	    addRvec(Cpos,x[kk],tmpvec,-1);
+	    pbc(tmpvec,box);
+	    d2=norm2vec(tmpvec);
+	    d=sqrt(d2);
+	    multRvec(tmpvec, q[kk]/(d*d*d) );
+	    addRvec(tmpvec,tmpEc,+1);
 
-	//now test if N is within cutoff
-	addRvec(Npos,x[jj],tmpvec,-1); //N to jj
-	pbc(tmpvec,box);
-	d2=norm2vec(tmpvec);
-	if (d2 < cut2) {
-	  d=sqrt(d2);
-	  multRvec(tmpvec, q[jj]/(d*d*d) );
-	  addRvec(tmpvec,tmpEn,+1);
+	    //calc En
+	    addRvec(Npos,x[kk],tmpvec,-1);
+	    pbc(tmpvec,box);
+	    d2=norm2vec(tmpvec);
+	    d=sqrt(d2);
+	    multRvec(tmpvec, q[kk]/(d*d*d) );
+	    addRvec(tmpvec,tmpEn,+1);
+	  }
 	}
       }
     }
@@ -267,15 +277,14 @@ void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
 }
 
 void CalcW::calcCOG(const rvec *x,rvec *cog) {
-  int jj,nthis;
-  int next=0;
+  int jj,thisSt,nthis;
   rvec tmpcog;
   for (int ii=0; ii<nres; ii++) {
+    thisSt=resSt[ii];
     nthis=atomsInRes[ii];
     setRvec(tmpcog,0.0);
     for (jj=0; jj<nthis; jj++)
-      addRvec(x[next+jj],tmpcog,1.0);
-    next+=nthis;
+      addRvec(x[thisSt+jj],tmpcog,1.0);
     multRvec(tmpcog,1.0/nthis);
     copyRvec(tmpcog,cog[ii]);
   }
