@@ -31,8 +31,6 @@ class CalcW {
 
   const int    natoms;
   const string *type;
-  const string *res;   //TODO: I don't think this is used
-  const int    *resnum;//TODO: I think this is replaced by resnumAll
   const int    *chain;
 
   const int    nres;

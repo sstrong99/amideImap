@@ -2,8 +2,8 @@
 
 
 CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
-  nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),res(gro.getRes()),
-  resnum(gro.getResNum()), chain(gro.getChain()), nres(gro.getNres()),
+  nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
+  chain(gro.getChain()), nres(gro.getNres()),
   resnumAll(gro.getResNumAll()), atomsInRes(gro.getAtomsInRes()),
   resSt(gro.getResSt()), q(chg.getCharges())
 {
@@ -168,7 +168,7 @@ uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x) {
 }
 
 uint CalcW::search(const int st, const int resI, const string &whichtype) {
-  if (resI>resnum[st]) {  //search forward
+  if (resI>resnumAll[st]) {  //search forward
     for (int ii=st+1; ii<natoms; ii++)
       if (type[ii].compare(whichtype)==0 && chain[ii]==chain[st])
 	return ii;
