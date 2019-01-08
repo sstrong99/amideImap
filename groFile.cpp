@@ -55,6 +55,7 @@ GroFile::GroFile(const string &filename) {
     if (tmptype.compare("C") ==0  ||
 	tmptype.compare("N") ==0  ||
 	tmptype.compare("CA")==0  ||
+	tmptype.compare("O") ==0  ||
 	tmptype.compare("H") ==0    ) //H is excluded too: see Carr JCP 140 2014
       backbone[ii]=true;
     else
