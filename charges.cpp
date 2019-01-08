@@ -1,7 +1,7 @@
 #include "charges.h"
 
 Charges::Charges(const Input &input,const GroFile &gro) :
-  type(gro.getType()), res(gro.getRes())
+  type(gro.getType()), res(gro.getRes()), resnum(gro.getResNum())
 {
   printf("Reading itp files and finding Charges...\n");
 
@@ -17,14 +17,14 @@ Charges::Charges(const Input &input,const GroFile &gro) :
   charges = new float[natom];
 
   string tmptype,tmpres;
-  int jj,thisI;
+  int tmpresnum,jj,thisI;
   for (int ii=0; ii<natom; ii++) {
-    tmpres=res[ii];
-
     //loop through itp files to find charge
-    tmptype = type[ii];
+    tmptype   = type[ii];
+    tmpres    = res[ii];
+    tmpresnum = resnum[ii];
     for (jj=0; jj<nITP; jj++) {
-      thisI=itps[jj].findType(tmptype);
+      thisI=itps[jj].findType(tmpresnum, tmptype, tmpres);
       if (thisI >= 0) {
 	charges[ii]=itps[jj].getQ(thisI);
 	break;
@@ -33,8 +33,10 @@ Charges::Charges(const Input &input,const GroFile &gro) :
 
     //test that jj==nITP for failure
     if (jj==nITP) {
-      printf("ERROR: no charge found for %s atom type\n",tmptype.c_str());
-      exit(EXIT_FAILURE);
+      printf("WARNING: no charge found for %d%s: %s\n",
+	     tmpresnum, tmpres.c_str(), tmptype.c_str());
+      charges[ii]=0.0;
+      //exit(EXIT_FAILURE);
     }
   }
 }

@@ -110,7 +110,7 @@ string GroFile::extractAndTrim(const string &s, const int a, const int b) {
 
 //return index of C atom, i think O atom is always i+1 from C atom
 int GroFile::findCarboxyl(const string &whichRes,const int whichNum,
-				  const int whichChain) const {
+			  const int whichChain) const {
   for (int ii=0; ii<natom; ii++)
     if ( whichChain==chain[ii]        &&
 	 whichNum==resnum[ii]         &&

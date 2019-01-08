@@ -8,7 +8,7 @@ ItpFile::ItpFile(const string &filename) {
   }
 
   string   line;
-  int ii=0;
+  uint ii=0;
   bool readFlag=false;
   while(getline(file, line)) {
     //skip comment
@@ -31,15 +31,19 @@ ItpFile::ItpFile(const string &filename) {
       string entry;
       stringstream   linestream(line);
 
-      //skip first 3 columns
-      linestream >> entry;
+      //skip 2 cols
       linestream >> entry;
       linestream >> entry;
 
+      //get res num
+      linestream >> entry;
+      resnum.push_back(stoi(entry));
+
       //get residue
       linestream >> entry;
-      //res.push_back(entry);
-      //don't need residue, b/c each type has specific charge
+      if (entry.compare("SOL")==0)
+	entry="HOH"; //rename SOL to HOH for compatibility with gro file
+      res.push_back(entry);
 
       //get type
       linestream >> entry;
@@ -58,14 +62,41 @@ ItpFile::ItpFile(const string &filename) {
 
   nTypes=ii;
 
-  //TODO: could optimize this to remove redundant types
+  //check if this itp file has solvent or
+  bool lastFlag;
+  for (ii=0; ii<res.size(); ii++) {
+    if (res[ii].compare("HOH")==0)
+      lastFlag=true;
+    else
+      lastFlag=false;
+
+    if (ii==0)
+      solvFlag=lastFlag;
+    else if (lastFlag!=solvFlag) {
+      printf("ERROR: solvent itp files cannot have other molecules.\n");
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
-int ItpFile::findType(const string &s) const {
-  for (int ii=0; ii<nTypes; ii++)
-    if (s.compare(type[ii]) == 0) {
-      return ii;
+int ItpFile::findType(const int whichnum, const string &whichtype,
+		      const string &whichres) const {
+  if (solvFlag) {    //if solvent, just compare resname and type
+    for (int ii=0; ii<nTypes; ii++) {
+      if (whichres.compare(res[ii])   == 0 &&
+	  whichtype.compare(type[ii]) == 0   )
+	return ii;
     }
+  } else {           //otherwise compare exact resnum
+    for (int ii=0; ii<nTypes; ii++) {
+      if (whichnum==resnum[ii]             &&
+	  whichres.compare(res[ii])   == 0 &&
+	  whichtype.compare(type[ii]) == 0   )
+	return ii;
+    }
+  }
 
   return -1;
+
+  //TODO: check that multpile itp files don't define a charge?
 }

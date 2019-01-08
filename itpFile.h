@@ -12,18 +12,21 @@ class ItpFile {
   ItpFile(const string &filename);
   ~ItpFile() {};
 
-  inline string getType(const int ii) const { return type[ii]; }
+  //inline string getType(const int ii) const { return type[ii]; }
   //inline string getRes(const int ii) const { return res[ii]; }
   inline float getQ(const int ii) const { return charge[ii]; }
 
-  int findType(const string &s) const;
+  int findType(const int whichnum, const string &whichtype,
+	       const string &whichres) const;
 
  private:
-  //vector<string> res;
+  vector<string> res;
+  vector<int>    resnum;
   vector<string> type;
   vector<float> charge;
 
   int nTypes;
+  bool solvFlag;
 
 };
 
