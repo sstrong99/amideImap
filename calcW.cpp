@@ -62,8 +62,6 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     calcTD(vecCO,vecCN,tmpvec);
     copyRvec(tmpvec,dip[ii]);
 
-    copyRvec(cog[resnumAll[ii]],tmpcog);
-
     //include NN peptide shifts
     float nnfs = 0.0;
     thisRes=resnumAll[thisAtom];
@@ -81,6 +79,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
+    copyRvec(cog[thisRes],tmpcog);
     excludeBackbone=false;
     for (jj=0; jj<nres; jj++) {
       //self and NN backbones are excluded, but side chains included
