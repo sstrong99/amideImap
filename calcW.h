@@ -31,6 +31,7 @@ class CalcW {
 
   const int    natoms;
   const string *type;
+  const bool   *backbone;
   const int    *chain;
 
   const int    nres;

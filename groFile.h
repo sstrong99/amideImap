@@ -20,6 +20,7 @@ class GroFile
   const string* getRes()    const { return res;    }
   const int*    getResNum() const { return resnum; }
   const int*    getChain()  const { return chain;  }
+  const bool*   getBackbone() const { return backbone; }
 
   inline int    getNatom() const {return natom;}
   inline int    getNres()  const {return nres;}
@@ -37,6 +38,7 @@ class GroFile
   int    *resnum;
   int    *chain;
   int    *resnumAll;
+  bool   *backbone;
 
   vector<int> atomsInRes;
   vector<int> resSt;

@@ -25,10 +25,11 @@ GroFile::GroFile(const string &filename) {
   res    = new string[natom];
   resnum = new int[natom];
   chain  = new int[natom];
+  backbone = new bool[natom];
 
   resnumAll = new int[natom];
 
-  string tmp,tmpres,lastresname;
+  string tmp,tmpres,tmptype,lastresname;
   int resdiff,lastres;
   int chainid=0;
   int nAtomIn=0;
@@ -45,11 +46,19 @@ GroFile::GroFile(const string &filename) {
     for(jj = 0; jj < tmp.size(); jj++)
       if (std::isalpha(tmp[jj]))
 	break;
-    tmpres  = tmp.substr(jj);
-    res[ii] = tmpres;
-    resnum[ii]= stoi(tmp.substr(0,jj));
+    tmpres     = tmp.substr(jj);
+    res[ii]    = tmpres;
+    resnum[ii] = stoi(tmp.substr(0,jj));
+    tmptype    = extractAndTrim(line,TYP_ST,TYP_L);
+    type[ii]   = tmptype;
 
-    type[ii] = extractAndTrim(line,TYP_ST,TYP_L);
+    if (tmptype.compare("C") ==0  ||
+	tmptype.compare("N") ==0  ||
+	tmptype.compare("CA")==0  ||
+	tmptype.compare("H") ==0    ) //H is excluded too: see Carr JCP 140 2014
+      backbone[ii]=true;
+    else
+      backbone[ii]=false;
 
     //init vars on first atom
     if (ii==0) {
@@ -95,6 +104,7 @@ GroFile::~GroFile() {
   delete[] resnum;
   delete[] chain;
   delete[] resnumAll;
+  delete[] backbone;
 }
 
 string GroFile::extractAndTrim(const string &s, const int a, const int b) {

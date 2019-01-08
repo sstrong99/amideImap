@@ -3,7 +3,7 @@
 
 CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
-  chain(gro.getChain()), nres(gro.getNres()),
+  backbone(gro.getBackbone()), chain(gro.getChain()), nres(gro.getNres()),
   resnumAll(gro.getResNumAll()), atomsInRes(gro.getAtomsInRes()),
   resSt(gro.getResSt()), q(chg.getCharges())
 {
@@ -46,6 +46,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   float d2,d;
   int thisAtom,thisRes,nnL,nnR;
   int kk;
+  bool excludeBackbone;
   //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
     thisAtom=inds[ii];
@@ -81,11 +82,12 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
+    excludeBackbone=false;
     for (jj=0; jj<nres; jj++) {
-      //exclude self and NN peptides
-      //TODO: should NN side chains be excluded, or just backbone?
+      //self and NN backbones are excluded, but side chains included
+      //see Lin JCP 113 2009
       if ( jj==nnL || jj==nnR || jj==thisRes )
-	continue;
+	excludeBackbone=true;
 
       //TODO: which atom is the cutoff with respect to?
       //get distance to C atom
@@ -97,6 +99,9 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
       if (d2 < cut2) {
 	for (kk=resSt[jj]; kk<resSt[jj]+atomsInRes[jj]; kk++) {
 	  if (q[kk]) {
+	    if (backbone[kk] && excludeBackbone)
+	      continue;
+
 	    //calc Ec
 	    addRvec(Cpos,x[kk],tmpvec,-1);
 	    pbc(tmpvec,box);
