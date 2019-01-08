@@ -1,6 +1,5 @@
 #include "calcW.h"
 
-
 CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
   backbone(gro.getBackbone()), chain(gro.getChain()), nres(gro.getNres()),
@@ -107,7 +106,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	    pbc(tmpvec,box);
 	    d2=norm2vec(tmpvec);
 	    d=sqrt(d2);
-	    multRvec(tmpvec, q[kk]/(d*d*d) );
+	    multRvec(tmpvec, q[kk]/(d2*d) );
 	    addRvec(tmpvec,tmpEc,+1);
 
 	    //calc En
@@ -115,7 +114,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	    pbc(tmpvec,box);
 	    d2=norm2vec(tmpvec);
 	    d=sqrt(d2);
-	    multRvec(tmpvec, q[kk]/(d*d*d) );
+	    multRvec(tmpvec, q[kk]/(d2*d) );
 	    addRvec(tmpvec,tmpEn,+1);
 	  }
 	}
