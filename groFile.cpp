@@ -29,13 +29,13 @@ GroFile::GroFile(const string &filename) {
 
   resnumAll = new int[natom];
 
-  string tmp,tmpres,tmptype,lastresname;
-  int resdiff,lastres;
+  string tmp,tmpres,tmptype;
+  int ii,resdiff;
   int chainid=0;
-  int nAtomIn=0;
-  int thisResSt=0;
   nres=0;
-  for (int ii=0; ii<natom; ii++) {
+  int lastres=-1;
+  string lastresname="NONE";
+  for (ii=0; ii<natom; ii++) {
     if (!getline(file,line)) {
       printf("ERROR: number of atoms in gro file is incorrect.\n");
       exit(EXIT_FAILURE);
@@ -61,23 +61,13 @@ GroFile::GroFile(const string &filename) {
     else
       backbone[ii]=false;
 
-    //init vars on first atom
-    if (ii==0) {
-      lastres=resnum[ii];
-      lastresname=tmpres;
-    }
-
     //number distinct residues/molecules
     if (tmpres.compare(lastresname)!=0 && lastres!=resnum[ii]) {
       resnumAll[ii]=nres++;
       lastresname=tmpres;  //only update if different
-      atomsInRes.push_back(nAtomIn);
-      resSt.push_back(thisResSt);
-      thisResSt+=nAtomIn;
-      nAtomIn=0;
+      resSt.push_back(ii);
     } else {
       resnumAll[ii]=nres;
-      nAtomIn++;
     }
 
     //number protein chains from 0-n
@@ -97,6 +87,9 @@ GroFile::GroFile(const string &filename) {
       lastres=resnum[ii];
     }
   }
+
+  //add end of last res
+  resSt.push_back(ii);
 }
 
 GroFile::~GroFile() {

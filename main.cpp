@@ -32,7 +32,11 @@ int main(int argc, const char *argv[])
 
   //init calcW
   int nchrom = indC.size();
-  CalcW calcW(nchrom,charges,gro);
+  //use residues as cutoff groups
+  //CalcW calcW(nchrom,charges,gro,grp.getResSt(),gro.getNres());
+
+  //use charge groups for cutoff
+  CalcW calcW(nchrom,charges,gro,charges.getCGst(),charges.getNcg());
 
   //loop through timesteps
   CompareEnergy cmpE("Energy_carr.txt",nchrom);

@@ -1,10 +1,10 @@
 #include "calcW.h"
 
-CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro) :
+CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int nCutGrp) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
-  backbone(gro.getBackbone()), chain(gro.getChain()), nres(gro.getNres()),
-  resnumAll(gro.getResNumAll()), atomsInRes(gro.getAtomsInRes()),
-  resSt(gro.getResSt()), q(chg.getCharges())
+  backbone(gro.getBackbone()), chain(gro.getChain()),
+  resnumAll(gro.getResNumAll()), q(chg.getCharges()),
+  grpSt(grpSt), nCutGrp(nCutGrp)
 {
   freq   = new float[nchrom];
   dip     = new rvec[nchrom];
@@ -37,11 +37,10 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   }
 
   //get centers of geometry
-  rvec *cog = new rvec[nres];
+  rvec *cog = new rvec[nCutGrp];
   calcCOG(x,cog);
 
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
-  rvec tmpcog;
   float d2,d;
   int thisAtom,thisRes,nnL,nnR;
   int kk;
@@ -73,29 +72,27 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     Cnext=search(thisAtom,nnR,"C");
     a2=calcAngles(Cnext,nnR,x);
 
+    //TODO: switch Nterm with Cterm??
     nnfs += interp2(phi[a1],psi[a1],NtermShift);
     nnfs += interp2(phi[a2],psi[a2],CtermShift);
 
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
-    copyRvec(cog[thisRes],tmpcog);
     excludeBackbone=false;
-    for (jj=0; jj<nres; jj++) {
+    for (jj=0; jj<nCutGrp; jj++) {
       //self and NN backbones are excluded, but side chains included
       //see Lin JCP 113 2009
       if ( jj==nnL || jj==nnR || jj==thisRes )
 	excludeBackbone=true;
 
-      //TODO: which atom is the cutoff with respect to?
-      //get distance to C atom
-      //addRvec(Cpos,x[jj],tmpvec,-1);
+      //TODO: which atom is the cutoff with respect to? C, cog, N?
       //get distance to COG
-      addRvec(tmpcog,cog[jj],tmpvec,-1);
+      addRvec(Cpos,cog[jj],tmpvec,-1);
       pbc(tmpvec,box);
       d2=norm2vec(tmpvec);
       if (d2 < cut2) {
-	for (kk=resSt[jj]; kk<resSt[jj]+atomsInRes[jj]; kk++) {
+	for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
 	  if (q[kk]) {
 	    if (backbone[kk] && excludeBackbone)
 	      continue;
@@ -280,11 +277,11 @@ void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
 }
 
 void CalcW::calcCOG(const rvec *x,rvec *cog) {
-  int jj,thisSt,nthis;
+  int jj,nthis,thisSt;
   rvec tmpcog;
-  for (int ii=0; ii<nres; ii++) {
-    thisSt=resSt[ii];
-    nthis=atomsInRes[ii];
+  for (int ii=0; ii<nCutGrp; ii++) {
+    thisSt=grpSt[ii];
+    nthis=grpSt[ii+1]-thisSt;
     setRvec(tmpcog,0.0);
     for (jj=0; jj<nthis; jj++)
       addRvec(x[thisSt+jj],tmpcog,1.0);

@@ -12,7 +12,9 @@ public:
   Charges(const Input &input,const GroFile &gro);
   ~Charges();
 
-  const float* getCharges() const { return charges; }
+  const float*      getCharges() const { return charges; }
+  const vector<int> getCGst()    const { return cgSt; }
+  const int         getNcg()     const { return nCG; }
 
 private:
   int natom;
@@ -22,6 +24,7 @@ private:
   const string *res;
   const int    *resnum;
 
-  vector<int>  cgSt;
+  vector<int>  cgSt;  //vector of starting inds of each charge group
+  int          nCG;
 };
 #endif

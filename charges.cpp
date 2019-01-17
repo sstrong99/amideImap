@@ -17,10 +17,11 @@ Charges::Charges(const Input &input,const GroFile &gro) :
   charges = new float[natom];
 
   string tmptype,tmpres;
-  int tmpresnum,jj,thisI,cgThis;
+  int ii,jj,tmpresnum,cgThis;
+  int thisI=-1;
   int cgLast=-1;
   int itpLast=-1;
-  for (int ii=0; ii<natom; ii++) {
+  for (ii=0; ii<natom; ii++) {
     //loop through itp files to find charge
     tmptype   = type[ii];
     tmpres    = res[ii];
@@ -33,21 +34,24 @@ Charges::Charges(const Input &input,const GroFile &gro) :
       }
     }
 
+    //test that jj==nITP for failure
+    if (jj==nITP) {
+      printf("ERROR: no charge found for %d%s: %s\n",
+	     tmpresnum, tmpres.c_str(), tmptype.c_str());
+      exit(EXIT_FAILURE);
+    }
+
     cgThis=itps[jj].getCG(thisI);
     if (cgLast!=cgThis || itpLast!=jj) {
       cgSt.push_back(ii);
       cgLast=cgThis;
       itpLast=jj;
     }
-
-    //test that jj==nITP for failure
-    if (jj==nITP) {
-      printf("WARNING: no charge found for %d%s: %s\n",
-	     tmpresnum, tmpres.c_str(), tmptype.c_str());
-      charges[ii]=0.0;
-      //exit(EXIT_FAILURE);
-    }
   }
+
+  nCG=cgSt.size();
+  //add end of last cg
+  cgSt.push_back(ii);
 }
 
 Charges::~Charges() {

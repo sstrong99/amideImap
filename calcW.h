@@ -17,7 +17,7 @@
 
 class CalcW {
  public:
-  CalcW(const int nchrom,const Charges &chg, const GroFile &gro);
+  CalcW(const int nchrom,const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int nCutGrp);
   ~CalcW();
   void compute(const Traj &traj, const vector<int> &inds);
   void print(FILE *fFreq, FILE *fDip);
@@ -27,19 +27,17 @@ class CalcW {
   int getTS() const {return ts;};
 
  private:
-  const int nchrom;
-
+  const int    nchrom;
   const int    natoms;
+
   const string *type;
   const bool   *backbone;
   const int    *chain;
-
-  const int    nres;
   const int    *resnumAll;
-  const vector<int> atomsInRes;
-  const vector<int> resSt;
-
   const float *q;
+
+  const vector<int> grpSt; //starting atom of each cutoff group
+  const int    nCutGrp;    //number of groups for cutoff (eg: cg, res, or atoms)
 
   rvec box;
 
