@@ -49,8 +49,9 @@ ItpFile::ItpFile(const string &filename) {
       linestream >> entry;
       type.push_back(entry);
 
-      //skip line
+      //get charge group number
       linestream >> entry;
+      cgnr.push_back(stoi(entry));
 
       //get charge
       linestream >> entry;

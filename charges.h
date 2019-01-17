@@ -21,5 +21,7 @@ private:
   const string *type;
   const string *res;
   const int    *resnum;
+
+  vector<int>  cgSt;
 };
 #endif

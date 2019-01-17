@@ -15,6 +15,7 @@ class ItpFile {
   //inline string getType(const int ii) const { return type[ii]; }
   //inline string getRes(const int ii) const { return res[ii]; }
   inline float getQ(const int ii) const { return charge[ii]; }
+  inline int getCG(const int ii) const { return cgnr[ii]; }
 
   int findType(const int whichnum, const string &whichtype,
 	       const string &whichres) const;
@@ -22,8 +23,9 @@ class ItpFile {
  private:
   vector<string> res;
   vector<int>    resnum;
+  vector<int>    cgnr;   //charge group number
   vector<string> type;
-  vector<float> charge;
+  vector<float>  charge;
 
   int nTypes;
   bool solvFlag;
