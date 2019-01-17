@@ -31,7 +31,7 @@ GroFile::GroFile(const string &filename) {
 
   string tmp,tmpres,tmptype;
   int ii,resdiff;
-  int chainid=0;
+  int chainid=-1;
   nres=0;
   int lastres=-1;
   string lastresname="NONE";
@@ -75,7 +75,7 @@ GroFile::GroFile(const string &filename) {
     if (tmpres.compare("HOH")==0  ||
 	tmpres.compare("DPPC")==0 ||
 	tmpres.compare("POT")==0  ||
-	tmpres.compare("CL")==0 )
+	tmpres.compare("CL")==0     )
     {
       chain[ii]=-1;
     } else {

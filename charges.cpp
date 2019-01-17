@@ -18,9 +18,10 @@ Charges::Charges(const Input &input,const GroFile &gro) :
 
   string tmptype,tmpres;
   int ii,jj,tmpresnum,cgThis;
-  int thisI=-1;
-  int cgLast=-1;
-  int itpLast=-1;
+  int thisI   = -1;
+  int cgLast  = -1;
+  int itpLast = -1;
+  int lastI   = -1;
   for (ii=0; ii<natom; ii++) {
     //loop through itp files to find charge
     tmptype   = type[ii];
@@ -42,11 +43,14 @@ Charges::Charges(const Input &input,const GroFile &gro) :
     }
 
     cgThis=itps[jj].getCG(thisI);
-    if (cgLast!=cgThis || itpLast!=jj) {
+    //last test is necessary for water, which uses same itp file over and over
+    if (cgLast!=cgThis || itpLast!=jj ||
+	(tmpres.compare("HOH")==0 && itpLast==jj && thisI-lastI!=1)) {
       cgSt.push_back(ii);
       cgLast=cgThis;
       itpLast=jj;
     }
+    lastI=thisI;
   }
 
   nCG=cgSt.size();

@@ -42,7 +42,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
   float d2,d;
-  int thisAtom,thisRes,nnL,nnR;
+  int thisAtom,thisRes,jRes,nnL,nnR;
   int kk;
   bool excludeBackbone;
   //loop through labelled CO and transition dipole
@@ -62,7 +62,6 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     copyRvec(tmpvec,dip[ii]);
 
     //include NN peptide shifts
-    float nnfs = 0.0;
     thisRes=resnumAll[thisAtom];
     nnL=thisRes-1;
     nnR=thisRes+1;
@@ -73,8 +72,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     a2=calcAngles(Cnext,nnR,x);
 
     //TODO: switch Nterm with Cterm??
-    nnfs += interp2(phi[a1],psi[a1],NtermShift);
-    nnfs += interp2(phi[a2],psi[a2],CtermShift);
+    float nnfs = interp2(phi[a1],psi[a1],NtermShift);
+    nnfs      += interp2(phi[a2],psi[a2],CtermShift);
 
     //loop through other atoms
     setRvec(tmpEn,0.0);
@@ -83,7 +82,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     for (jj=0; jj<nCutGrp; jj++) {
       //self and NN backbones are excluded, but side chains included
       //see Lin JCP 113 2009
-      if ( jj==nnL || jj==nnR || jj==thisRes )
+      jRes=resnumAll[grpSt[jj]];
+      if ( jRes==nnL || jRes==nnR || jRes==thisRes )
 	excludeBackbone=true;
 
       //TODO: which atom is the cutoff with respect to? C, cog, N?
@@ -116,6 +116,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	}
       }
     }
+
+    //TODO: group cutoff vs atomic cutoff shouldn't give such big difference in frequency
     freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
 

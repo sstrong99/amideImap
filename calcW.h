@@ -22,9 +22,9 @@ class CalcW {
   void compute(const Traj &traj, const vector<int> &inds);
   void print(FILE *fFreq, FILE *fDip);
 
-  float getDip(const int ii,const int jj) const {return dip[ii][jj];};
-  float getFreq(const int ii) const { return freq[ii]; };
-  int getTS() const {return ts;};
+  float getDip(const int ii,const int jj) const { return dip[ii][jj]; }
+  float getFreq(const int ii)             const { return freq[ii];    }
+  int   getTS()                           const { return ts;          }
 
  private:
   const int    nchrom;
@@ -34,10 +34,10 @@ class CalcW {
   const bool   *backbone;
   const int    *chain;
   const int    *resnumAll;
-  const float *q;
+  const float  *q;
 
   const vector<int> grpSt; //starting atom of each cutoff group
-  const int    nCutGrp;    //number of groups for cutoff (eg: cg, res, or atoms)
+  const int         nCutGrp;    //number of groups for cutoff (eg: cg, res, or atoms)
 
   rvec box;
 

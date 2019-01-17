@@ -13,11 +13,11 @@ public:
   ~Charges();
 
   const float*      getCharges() const { return charges; }
-  const vector<int> getCGst()    const { return cgSt; }
-  const int         getNcg()     const { return nCG; }
+  const vector<int> getCGst()    const { return cgSt;    }
+  const int         getNcg()     const { return nCG;     }
 
 private:
-  int natom;
+  int    natom;
   float *charges;
 
   const string *type;
