@@ -157,21 +157,21 @@ uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x) {
 
   angleID.push_back(resI);
 
-  rvec x1,x2,x3,x4;
+  int i1,i2,i3,i4;
 
   //calculate psi: N-Ca-C-N
-  copyRvec(x[search(atomI,resI,"N")  ],x1);
-  copyRvec(x[search(atomI,resI,"CA") ],x2);
-  copyRvec(x[atomI                   ],x3);
-  copyRvec(x[search(atomI,resI+1,"N")],x4);
-  psi.push_back(calcDihedral(x1,x2,x3,x4));
+  i1=search(atomI,resI,"N");
+  i2=search(atomI,resI,"CA");
+  i3=atomI;
+  i4=search(atomI,resI+1,"N");
+  psi.push_back(calcDihedral(x[i1],x[i2],x[i3],x[i4]));
 
   //calculate phi: C-N-Ca-C
-  copyRvec(x[search(atomI,resI-1,"C")],x1);
-  copyRvec(x[search(atomI,resI,"N")  ],x2);
-  copyRvec(x[search(atomI,resI,"CA") ],x3);
-  copyRvec(x[atomI                   ],x4);
-  phi.push_back(calcDihedral(x1,x2,x3,x4));
+  i1=search(atomI,resI-1,"C");
+  i2=search(atomI,resI,"N");
+  i3=search(atomI,resI,"CA");
+  i4=atomI;
+  phi.push_back(calcDihedral(x[i1],x[i2],x[i3],x[i4]));
 
   return angleID.size()-1;
 }
