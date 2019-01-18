@@ -46,6 +46,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   int kk;
   bool excludeBackbone;
   //loop through labelled CO and transition dipole
+  FILE *fp = fopen("neighs.txt","w");
   for (ii=0; ii<nchrom; ii++) {
     thisAtom=inds[ii];
     copyRvec(x[thisAtom],Cpos);
@@ -105,6 +106,9 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	    multRvec(tmpvec, q[kk]/(d2*d) );
 	    addRvec(tmpvec,tmpEc,+1);
 
+	    if (ii==0)
+	      fprintf(fp,"%d %f\n",kk,d/cut);
+
 	    //calc En
 	    addRvec(Npos,x[kk],tmpvec,-1);
 	    pbc(tmpvec,box);
@@ -122,6 +126,8 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   }
 
   delete[] cog;
+
+  fclose(fp);
 }
 
 void CalcW::print(FILE *fFreq, FILE *fDip) {
