@@ -79,13 +79,14 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     //loop through other atoms
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
-    excludeBackbone=false;
     for (jj=0; jj<nCutGrp; jj++) {
       //self and NN backbones are excluded, but side chains included
       //see Lin JCP 113 2009
       jRes=resnumAll[grpSt[jj]];
       if ( jRes==nnL || jRes==nnR || jRes==thisRes )
 	excludeBackbone=true;
+      else
+	excludeBackbone=false;
 
       //TODO: which atom is the cutoff with respect to? C, cog, N?
       //get distance to COG
@@ -286,13 +287,18 @@ void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
 
 void CalcW::calcCOG(const rvec *x,rvec *cog) {
   int jj,nthis,thisSt;
-  rvec tmpcog;
+  rvec tmpcog,tmpdiff,tmpvec,xref;
   for (int ii=0; ii<nCutGrp; ii++) {
     thisSt=grpSt[ii];
     nthis=grpSt[ii+1]-thisSt;
-    setRvec(tmpcog,0.0);
-    for (jj=0; jj<nthis; jj++)
-      addRvec(x[thisSt+jj],tmpcog,1.0);
+    copyRvec(x[thisSt],tmpcog);
+    copyRvec(tmpcog,xref);
+    for (jj=1; jj<nthis; jj++) {
+      copyRvec(x[thisSt+jj],tmpvec);
+      addRvec(tmpvec,xref,tmpdiff,-1.0);
+      pbcOther(tmpvec,tmpdiff,box);   //get image closest to 1st point
+      addRvec(tmpvec,tmpcog,1.0);
+    }
     multRvec(tmpcog,1.0/nthis);
     copyRvec(tmpcog,cog[ii]);
   }

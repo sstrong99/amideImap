@@ -49,4 +49,9 @@ inline void pbc(rvec &v, const rvec &box) {
   for (int ii=0; ii<DIM; ii++)
     v[ii]-=box[ii]*round(v[ii]/box[ii]);
 };
+
+inline void pbcOther(rvec &v, const rvec &vTest, const rvec &box) {
+  for (int ii=0; ii<DIM; ii++)
+    v[ii]-=box[ii]*round(vTest[ii]/box[ii]);
+};
 #endif
