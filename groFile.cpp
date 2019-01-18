@@ -32,7 +32,7 @@ GroFile::GroFile(const string &filename) {
   string tmp,tmpres,tmptype;
   int ii,resdiff;
   int chainid=-1;
-  nres=0;
+  nres=-1;
   int lastres=-1;
   string lastresname="NONE";
   for (ii=0; ii<natom; ii++) {
@@ -62,8 +62,8 @@ GroFile::GroFile(const string &filename) {
       backbone[ii]=false;
 
     //number distinct residues/molecules
-    if (tmpres.compare(lastresname)!=0 && lastres!=resnum[ii]) {
-      resnumAll[ii]=nres++;
+    if (lastres!=resnum[ii]) {
+      resnumAll[ii]=++nres;
       lastresname=tmpres;  //only update if different
       resSt.push_back(ii);
     } else {
@@ -84,12 +84,14 @@ GroFile::GroFile(const string &filename) {
 	chain[ii]=chainid;
       else
 	chain[ii]=++chainid;
-      lastres=resnum[ii];
     }
+
+    lastres=resnum[ii];
   }
 
   //add end of last res
   resSt.push_back(ii);
+  nres++;
 }
 
 GroFile::~GroFile() {
