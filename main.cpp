@@ -33,7 +33,7 @@ int main(int argc, const char *argv[])
   //init calcW
   int nchrom = indC.size();
   //use residues as cutoff groups
-  //CalcW calcW(nchrom,charges,gro,grp.getResSt(),gro.getNres());
+  //CalcW calcW(nchrom,charges,gro,gro.getResSt(),gro.getNres());
 
   //use charge groups for cutoff
   CalcW calcW(nchrom,charges,gro,charges.getCGst(),charges.getNcg());
