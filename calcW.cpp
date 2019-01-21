@@ -121,8 +121,6 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	}
       }
     }
-
-    //TODO: group cutoff vs atomic cutoff shouldn't give such big difference in frequency
     freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
 
