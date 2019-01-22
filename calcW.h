@@ -11,13 +11,10 @@
 #include <cstdio>
 #include <algorithm>
 
-//#define CM2PS 0.18836516 //cm/ps = 1/2pi*c
-//#define HART2CM 2.1947463e5 //convert hartree to wavenumber
-#define NDIST 0.2  //Distance between C and N atom in nm
-
 class CalcW {
  public:
-  CalcW(const int nchrom,const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int nCutGrp);
+  CalcW(const int nchrom,const Charges &chg, const GroFile &gro,
+	const vector<int> &grpSt, const int *grpInd, const int nCutGrp);
   ~CalcW();
   void compute(const Traj &traj, const vector<int> &inds);
   void print(FILE *fFreq, FILE *fDip);
@@ -36,8 +33,9 @@ class CalcW {
   const int    *resnumAll;
   const float  *q;
 
-  const vector<int> grpSt; //starting atom of each cutoff group
-  const int         nCutGrp;    //number of groups for cutoff (eg: cg, res, or atoms)
+  const vector<int> grpSt;   //starting atom of each cutoff group
+  const int        *grpInd;  //group ind of each atom
+  const int         nCutGrp; //number of groups for cutoff (eg: cg, res, or atoms)
 
   rvec box;
 
@@ -46,26 +44,23 @@ class CalcW {
   float *freq;
   rvec  *dip;      //transition dipole moments
 
-  vector<int> angleID;
-  vector<float> phi;
-  vector<float> psi;
-
-  uint calcAngles(const int atomI, const int resI, const rvec *x);
+  uint calcAngles(const int atomI, const int resI, const rvec *x,vector<int> &angleID, vector<float> &phi, vector<float> &psi);
   uint search(const int st, const int resI, const string &whichtype);
   float calcDihedral(const rvec &, const rvec &,
 		     const rvec &, const rvec &);
   static inline void normalize(rvec &v);
   static float interp2(const float &, const float &, const float z[]);
   void calcCOG(const rvec *x,rvec *cog);
+  vector<uint> getExcludes(const uint nnC[3]);
 
   //**************************************************************************
   //MAP parameters
 
   //efield cutoffs
-  static constexpr float cut = 2.0*A0INV;
-  static constexpr float cut2 = cut*cut;
-  static constexpr float cutN = cut+NDIST*A0INV;
-  static constexpr float cutN2 = cutN*cutN;
+  static constexpr float cut     = 2.0*A0INV;      //20A
+  static constexpr float cut2    = cut*cut;
+  static constexpr float cutExt  = cut+0.2*A0INV;  //add 2A
+  static constexpr float cutExt2 = cutExt*cutExt;
 
   //freq map function
   static inline float map(const float &Ec, const float &En)

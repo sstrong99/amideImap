@@ -36,10 +36,11 @@ int main(int argc, const char *argv[])
   //CalcW calcW(nchrom,charges,gro,gro.getResSt(),gro.getNres());
 
   //use charge groups for cutoff
-  CalcW calcW(nchrom,charges,gro,charges.getCGst(),charges.getNcg());
+  CalcW calcW(nchrom,charges,gro,charges.getCGst(),
+	      charges.getCG(),charges.getNcg());
 
   //loop through timesteps
-  CompareEnergy cmpE("Energy_carr.txt",nchrom);
+  CompareEnergy cmpE("Energy_newJansen.txt",nchrom);
   CompareDipole cmpD("Dipole_carr.txt",nchrom);
   FILE *fFreq=fopen(input.getEnergyFile().c_str(),"w");
   FILE *fDip=fopen(input.getDipoleFile().c_str(),"w");

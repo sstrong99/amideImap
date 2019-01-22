@@ -1,10 +1,10 @@
 #include "calcW.h"
 
-CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int nCutGrp) :
+CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int *grpInd, const int nCutGrp) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
   backbone(gro.getBackbone()), chain(gro.getChain()),
   resnumAll(gro.getResNumAll()), q(chg.getCharges()),
-  grpSt(grpSt), nCutGrp(nCutGrp)
+  grpSt(grpSt), grpInd(grpInd), nCutGrp(nCutGrp)
 {
   freq   = new float[nchrom];
   dip     = new rvec[nchrom];
@@ -23,7 +23,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   const rvec  *x=traj.getCoords();
   traj.getBox(box);
   ts=traj.getNT()-1;
-  int ii,jj;
+  int ii,jj,kk;
   //check that box is larger than 2*cutoff
   for (ii=0; ii<DIM; ii++)
     if (box[ii]<2*cut) {
@@ -40,21 +40,25 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   rvec *cog = new rvec[nCutGrp];
   calcCOG(x,cog);
 
+  //save angles so don't re-compute
+  vector<int> angleID;
+  vector<float> phi;
+  vector<float> psi;
+
+  uint          nnC[3];  //list of C atoms in two nn amides, and self
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
-  float d2,d;
-  int thisAtom,thisRes,jRes,nnL,nnR;
-  int kk;
-  bool excludeBackbone;
+  float d2,d,d2n;
+  uint thisC,thisRes,a1,a2,nextC;
+  rvec thisCcog,thisNcog;
   //loop through labelled CO and transition dipole
-  FILE *fp = fopen("neighs.txt","w");
   for (ii=0; ii<nchrom; ii++) {
-    thisAtom=inds[ii];
-    copyRvec(x[thisAtom],Cpos);
-    addRvec(x[thisAtom+1],Cpos,vecCO,-1); //points towards O (rO-rC)
+    thisC=inds[ii];
+    copyRvec(x[thisC],Cpos);
+    addRvec(x[thisC+1],Cpos,vecCO,-1); //points towards O (rO-rC)
     pbc(vecCO,box);
     normalize(vecCO);
 
-    copyRvec(x[thisAtom+2],Npos);
+    copyRvec(x[thisC+2],Npos);
     addRvec(Npos,Cpos,vecCN,-1); //points towards N (rN-rC)
     pbc(vecCN,box);
     normalize(vecCN);
@@ -63,70 +67,95 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     copyRvec(tmpvec,dip[ii]);
 
     //include NN peptide shifts
-    thisRes=resnumAll[thisAtom];
-    nnL=thisRes-1;
-    nnR=thisRes+1;
-    uint a1,a2,Cnext;
-    a1=calcAngles(thisAtom,thisRes,x);
+    thisRes=resnumAll[thisC];
+    a1=calcAngles(thisC,thisRes,x,angleID,phi,psi);
     //calculate angles for next resiude
-    Cnext=search(thisAtom,nnR,"C");
-    a2=calcAngles(Cnext,nnR,x);
+    nextC=search(thisC,thisRes+1,"C");
+    a2=calcAngles(nextC,thisRes+1,x,angleID,phi,psi);
 
-    //TODO: switch Nterm with Cterm??
+    //for excluding previous amide bond
+    nnC[0]=search(thisC,thisRes-1,"C");
+    nnC[1]=thisC;
+    nnC[2]=nextC;
+    vector<uint> excludeGrp = getExcludes(nnC);
+
+    //tested 1/21/19 that this gives same shifts as Jansen's code
     float nnfs = interp2(phi[a1],psi[a1],NtermShift);
     nnfs      += interp2(phi[a2],psi[a2],CtermShift);
 
     //loop through other atoms
+    copyRvec(cog[grpInd[thisC]],thisCcog);
+    copyRvec(cog[grpInd[thisC+2]],thisNcog);
     setRvec(tmpEn,0.0);
     setRvec(tmpEc,0.0);
     for (jj=0; jj<nCutGrp; jj++) {
       //self and NN backbones are excluded, but side chains included
       //see Lin JCP 113 2009
-      jRes=resnumAll[grpSt[jj]];
-      if ( jRes==nnL || jRes==nnR || jRes==thisRes )
-	excludeBackbone=true;
-      else
-	excludeBackbone=false;
+      if (std::find(excludeGrp.begin(), excludeGrp.end(), jj) !=
+	  excludeGrp.end())
+	continue;
 
-      //TODO: which atom is the cutoff with respect to? C, cog, N?
-      //get distance to COG
-      addRvec(Cpos,cog[jj],tmpvec,-1);
+      //get distance from COG to COG
+      addRvec(thisCcog,cog[jj],tmpvec,-1);
       pbc(tmpvec,box);
       d2=norm2vec(tmpvec);
-      if (d2 < cut2) {
-	for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
-	  if (q[kk]) {
-	    if (backbone[kk] && excludeBackbone)
-	      continue;
+      if (d2 < cutExt2) {  //test if distance is within C or N of current amideI
 
-	    //calc Ec
-	    addRvec(Cpos,x[kk],tmpvec,-1);
-	    pbc(tmpvec,box);
-	    d2=norm2vec(tmpvec);
-	    d=sqrt(d2);
-	    multRvec(tmpvec, q[kk]/(d2*d) );
-	    addRvec(tmpvec,tmpEc,+1);
+	//get dist to N too
+	addRvec(thisNcog,cog[jj],tmpvec,-1);
+	pbc(tmpvec,box);
+	d2n=norm2vec(tmpvec);
 
-	    if (ii==0)
-	      fprintf(fp,"%d %f\n",kk,d/cut);
+	if (d2 < cut2 && d2n<cut2) { //both C and N are in cutoff
+	  for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
+	    if (q[kk]) {
+	      //calc Ec
+	      addRvec(Cpos,x[kk],tmpvec,-1);
+	      pbc(tmpvec,box);
+	      d2=norm2vec(tmpvec);
+	      d=sqrt(d2);
+	      multRvec(tmpvec, q[kk]/(d2*d) );
+	      addRvec(tmpvec,tmpEc,+1);
 
-	    //calc En
-	    addRvec(Npos,x[kk],tmpvec,-1);
-	    pbc(tmpvec,box);
-	    d2=norm2vec(tmpvec);
-	    d=sqrt(d2);
-	    multRvec(tmpvec, q[kk]/(d2*d) );
-	    addRvec(tmpvec,tmpEn,+1);
+	      //calc En
+	      addRvec(Npos,x[kk],tmpvec,-1);
+	      pbc(tmpvec,box);
+	      d2=norm2vec(tmpvec);
+	      d=sqrt(d2);
+	      multRvec(tmpvec, q[kk]/(d2*d) );
+	      addRvec(tmpvec,tmpEn,+1);
+	    }
+	  }
+	} else if (d2 < cut2) {  //just C in cutoff
+	  for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
+	    if (q[kk]) {
+	      //calc Ec
+	      addRvec(Cpos,x[kk],tmpvec,-1);
+	      pbc(tmpvec,box);
+	      d2=norm2vec(tmpvec);
+	      d=sqrt(d2);
+	      multRvec(tmpvec, q[kk]/(d2*d) );
+	      addRvec(tmpvec,tmpEc,+1);
+	    }
+	  }
+	} else if (d2n < cut2) { //just N in cutoff
+	  for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
+	    if (q[kk]) {
+	      //calc En
+	      addRvec(Npos,x[kk],tmpvec,-1);
+	      pbc(tmpvec,box);
+	      d2=norm2vec(tmpvec);
+	      d=sqrt(d2);
+	      multRvec(tmpvec, q[kk]/(d2*d) );
+	      addRvec(tmpvec,tmpEn,+1);
+	    }
 	  }
 	}
       }
     }
     freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
-
   delete[] cog;
-
-  fclose(fp);
 }
 
 void CalcW::print(FILE *fFreq, FILE *fDip) {
@@ -144,7 +173,7 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   fprintf(fDip,"\n");
 }
 
-uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x) {
+uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x,vector<int> &angleID, vector<float> &phi, vector<float> &psi) {
   //check if already calculated this angle
   uint ind;
   for (ind=0; ind<angleID.size(); ind++)
@@ -300,4 +329,20 @@ void CalcW::calcCOG(const rvec *x,rvec *cog) {
     multRvec(tmpcog,1.0/nthis);
     copyRvec(tmpcog,cog[ii]);
   }
+}
+
+vector<uint> CalcW::getExcludes(const uint nnC[3]) {
+  uint ii,jj,tmpExcl;
+  vector<uint> excludeGrp;
+  for (ii=0; ii<3; ii++) { //loop through neighboring Cs
+    for (jj=0; jj<5; jj++) {  //loop through atoms in amide I bond to exclude
+      tmpExcl=grpInd[nnC[ii]+jj];
+      //if grp not already in list, add it
+      if (std::find(excludeGrp.begin(), excludeGrp.end(), tmpExcl) ==
+	  excludeGrp.end())
+	excludeGrp.push_back(tmpExcl);
+    }
+  }
+
+  return excludeGrp;
 }

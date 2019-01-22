@@ -15,6 +15,7 @@ Charges::Charges(const Input &input,const GroFile &gro) :
   //find charges for each atom in gro
   natom = gro.getNatom();
   charges = new float[natom];
+  cg      = new int[natom];
 
   string tmptype,tmpres;
   int ii,jj,tmpresnum,cgThis;
@@ -22,6 +23,7 @@ Charges::Charges(const Input &input,const GroFile &gro) :
   int cgLast  = -1;
   int itpLast = -1;
   int lastI   = -1;
+  nCG=-1;
   for (ii=0; ii<natom; ii++) {
     //loop through itp files to find charge
     tmptype   = type[ii];
@@ -49,15 +51,19 @@ Charges::Charges(const Input &input,const GroFile &gro) :
       cgSt.push_back(ii);
       cgLast=cgThis;
       itpLast=jj;
-    }
+      cg[ii]=++nCG;
+    } else
+      cg[ii]=nCG;
+
     lastI=thisI;
   }
 
-  nCG=cgSt.size();
+  nCG++;
   //add end of last cg
   cgSt.push_back(ii);
 }
 
 Charges::~Charges() {
   delete[] charges;
+  delete[] cg;
 }

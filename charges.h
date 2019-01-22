@@ -15,6 +15,7 @@ public:
   const float*      getCharges() const { return charges; }
   const vector<int> getCGst()    const { return cgSt;    }
   const int         getNcg()     const { return nCG;     }
+  const int*        getCG()      const { return cg;     }
 
 private:
   int    natom;
@@ -25,6 +26,7 @@ private:
   const int    *resnum;
 
   vector<int>  cgSt;  //vector of starting inds of each charge group
+  int          *cg;   //ind of cg each atom belongs to
   int          nCG;
 };
 #endif
