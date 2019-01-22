@@ -40,6 +40,9 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   rvec *cog = new rvec[nCutGrp];
   calcCOG(x,cog);
 
+  //TODO: debug
+  FILE *fp = fopen("neighs.txt","w");
+
   //save angles so don't re-compute
   vector<int> angleID;
   vector<float> phi;
@@ -107,7 +110,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	d2n=norm2vec(tmpvec);
 
 	//lots of duplicated code here, to avoid separate loop for each case
-	if (d2 < cut2 && d2n<cut2) { //both C and N are in cutoff
+	if (d2 < cut2 && d2n < cut2) { //both C and N are in cutoff
 	  for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
 	    if (q[kk]) {
 	      //calc Ec
@@ -125,6 +128,9 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	      d=sqrt(d2);
 	      multRvec(tmpvec, q[kk]/(d2*d) );
 	      addRvec(tmpvec,tmpEn,+1);
+
+	      if (ii==3)
+		fprintf(fp,"%d %.4f %.4e\n",kk,d/cut,dot(tmpvec,vecCO));
 	    }
 	  }
 	} else if (d2 < cut2) {  //just C in cutoff
@@ -137,6 +143,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	      d=sqrt(d2);
 	      multRvec(tmpvec, q[kk]/(d2*d) );
 	      addRvec(tmpvec,tmpEc,+1);
+
 	    }
 	  }
 	} else if (d2n < cut2) { //just N in cutoff
@@ -149,6 +156,9 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	      d=sqrt(d2);
 	      multRvec(tmpvec, q[kk]/(d2*d) );
 	      addRvec(tmpvec,tmpEn,+1);
+
+	      if (ii==3)
+		fprintf(fp,"%d %.4f %.4e\n",kk,d/cut,dot(tmpvec,vecCO));
 	    }
 	  }
 	}
@@ -156,6 +166,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
     }
     freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
+  fclose(fp);
   delete[] cog;
 }
 

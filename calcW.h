@@ -59,7 +59,7 @@ class CalcW {
   //efield cutoffs
   static constexpr float cut     = 2.0*A0INV;      //20A
   static constexpr float cut2    = cut*cut;
-  static constexpr float cutExt  = cut+0.2*A0INV;  //add 2A
+  static constexpr float cutExt  = cut+0.3*A0INV;  //add 3A
   static constexpr float cutExt2 = cutExt*cutExt;
 
   //freq map function
