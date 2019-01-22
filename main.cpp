@@ -40,23 +40,19 @@ int main(int argc, const char *argv[])
 	      charges.getCG(),charges.getNcg());
 
   //loop through timesteps
-  CompareEnergy cmpE("Energy_newJansen.txt",nchrom);
-  CompareDipole cmpD("Dipole_carr.txt",nchrom);
+  CompareEnergy cmpE(input.getErefFile(),input.getEdiffFile(),nchrom);
+  CompareDipole cmpD(input.getDrefFile(),input.getDdiffFile(),nchrom);
   FILE *fFreq=fopen(input.getEnergyFile().c_str(),"w");
   FILE *fDip=fopen(input.getDipoleFile().c_str(),"w");
-  FILE *fEdiff=fopen("Energy_diff.txt","w");
-  FILE *fDdiff=fopen("Dipole_diff.txt","w");
   while(traj.next()==0) {
     calcW.compute(traj,indC);
     calcW.print(fFreq,fDip);
 
-    cmpE.compare(calcW,fEdiff);
-    cmpD.compare(calcW,fDdiff);
+    cmpE.compare(calcW);
+    cmpD.compare(calcW);
   }
   fclose(fFreq);
   fclose(fDip);
-  fclose(fEdiff);
-  fclose(fDdiff);
 
   string time = time_entire.getDHMS();
   printf("Completed in %s\n",time.c_str());

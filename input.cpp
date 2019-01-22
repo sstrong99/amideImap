@@ -8,6 +8,13 @@ Input::Input(const string &inputfile) : outPostfix("")
     exit(EXIT_FAILURE);
   }
 
+  //default vaules
+  outPostfix="";
+  eRefFile="";
+  dRefFile="";
+  eDiffFile="";
+  dDiffFile="";
+
   string   line;
   string   key;
   string   tmpstr;
@@ -34,6 +41,14 @@ Input::Input(const string &inputfile) : outPostfix("")
       linestream >> tmpstr;
       itpFiles.push_back(tmpstr);
     }
+    else if (key.compare("energyRef")==0)
+      linestream >> eRefFile;
+    else if (key.compare("dipoleRef")==0)
+      linestream >> dRefFile;
+    else if (key.compare("energyDiff")==0)
+      linestream >> eDiffFile;
+    else if (key.compare("dipoleDiff")==0)
+      linestream >> dDiffFile;
     else if (key.compare("residue")==0) {
       linestream >> tmpstr;
       resNames.push_back(tmpstr);

@@ -12,15 +12,18 @@
 using namespace std;
 class Compare {
 public:
-  Compare(const string &filename,const int nchrom);
-  ~Compare() {};
+  Compare(const string &reffilename,const string &outfilename,const int nchrom);
+  ~Compare();
 
-  void compare(const CalcW &calcW,FILE *fh);
+  void compare(const CalcW &calcW);
 
 protected:
-  string filename;
-  ifstream file;
+  string reffilename,outfilename;
+  ifstream reffile;
+  FILE *outfile;
   int nchrom;
+
+  bool doNothing;
 
   string line;
   int stat;
@@ -28,7 +31,7 @@ protected:
 
   virtual void readline() = 0;
   virtual void calcDiff(const CalcW &calcW)  = 0;
-  virtual void print(FILE *fh) = 0;
+  virtual void print() = 0;
 
 };
 

@@ -19,17 +19,19 @@ public:
   string getResNames(const int ii) const;
   int    getResNums(const int ii)  const;
 
-  string getTrajFile() const {return trajFile;};
-  string getOutPostfix() const {return outPostfix;};
-  string getGroFile() const {return groFile;};
+  string getTrajFile()   const { return trajFile;   }
+  string getOutPostfix() const { return outPostfix; }
+  string getGroFile()    const { return groFile;    }
+  string getErefFile()   const { return eRefFile;   }
+  string getDrefFile()   const { return dRefFile;   }
+  string getEdiffFile()  const { return eDiffFile;  }
+  string getDdiffFile()  const { return dDiffFile;  }
 
-  string getEnergyFile() const {return "Energy"+outPostfix+".txt";};
-  string getDipoleFile() const {return "Dipole"+outPostfix+".txt";};
+  string getEnergyFile() const {return "Energy"+outPostfix+".txt";}
+  string getDipoleFile() const {return "Dipole"+outPostfix+".txt";}
 
 private:
-  string trajFile;
-  string outPostfix;
-  string groFile;
+  string trajFile,outPostfix,groFile,eRefFile,dRefFile,eDiffFile,dDiffFile;
   vector<string> itpFiles;
   vector<string> resNames;
   vector<int>    resNums;

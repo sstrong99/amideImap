@@ -8,13 +8,14 @@
 
 class CompareEnergy : public Compare {
 public:
-  CompareEnergy(const string &filename, const int nchrom);
+  CompareEnergy(const string &reffilename, const string &outfilename,
+		const int nchrom);
   ~CompareEnergy() {};
 
 protected:
   void readline();
   void calcDiff(const CalcW &calcW);
-  void print(FILE *fh);
+  void print();
 
 private:
   vector<float> energy;

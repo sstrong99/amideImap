@@ -1,6 +1,8 @@
 #include "compareEnergy.h"
 
-CompareEnergy::CompareEnergy(const string &filename,const int nchrom) : Compare(filename,nchrom), energy(nchrom), diff(nchrom) {}
+CompareEnergy::CompareEnergy(const string &reffilename,
+			     const string &outfilename, const int nchrom) :
+  Compare(reffilename,outfilename,nchrom), energy(nchrom), diff(nchrom) {}
 
 void CompareEnergy::readline() {
   string word;
@@ -19,7 +21,7 @@ void CompareEnergy::readline() {
 
 void CompareEnergy::calcDiff(const CalcW &calcW) {
   if (ts != calcW.getTS()) {
-    printf("ERROR: comparison with %s is not at the same timestep.\n",filename.c_str());
+    printf("ERROR: comparison with %s is not at the same timestep.\n",reffilename.c_str());
     exit(EXIT_FAILURE);
   }
 
@@ -27,9 +29,9 @@ void CompareEnergy::calcDiff(const CalcW &calcW) {
     diff[ii]=calcW.getFreq(ii)-energy[ii];
 }
 
-void CompareEnergy::print(FILE *fh) {
-  fprintf(fh,"%d",ts);
+void CompareEnergy::print() {
+  fprintf(outfile,"%d",ts);
   for (int ii=0; ii<nchrom; ii++)
-    fprintf(fh," %f",diff[ii]);
-  fprintf(fh,"\n");
+    fprintf(outfile," %f",diff[ii]);
+  fprintf(outfile,"\n");
 }

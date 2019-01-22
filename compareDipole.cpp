@@ -1,6 +1,8 @@
 #include "compareDipole.h"
 
-CompareDipole::CompareDipole(const string &filename,const int nchrom) : Compare(filename,nchrom), dipole(nchrom), diff(nchrom) {}
+CompareDipole::CompareDipole(const string &reffilename,
+			     const string &outfilename,const int nchrom) :
+  Compare(reffilename,outfilename,nchrom), dipole(nchrom), diff(nchrom) {}
 
 void CompareDipole::readline() {
   string word;
@@ -17,7 +19,7 @@ void CompareDipole::readline() {
 
 void CompareDipole::calcDiff(const CalcW &calcW) {
   if (ts != calcW.getTS()) {
-    printf("ERROR: comparison with %s is not at the same timestep.\n",filename.c_str());
+    printf("ERROR: comparison with %s is not at the same timestep.\n",reffilename.c_str());
     exit(EXIT_FAILURE);
   }
 
@@ -26,10 +28,10 @@ void CompareDipole::calcDiff(const CalcW &calcW) {
       diff[ii][jj]=calcW.getDip(ii,jj)/dipole[ii][jj];
 }
 
-void CompareDipole::print(FILE *fh) {
-  fprintf(fh,"%d",ts);
+void CompareDipole::print() {
+  fprintf(outfile,"%d",ts);
   for (int ii=0; ii<nchrom; ii++)
     for (int jj=0; jj<DIM; jj++)
-      fprintf(fh," %f",diff[ii][jj]);
-  fprintf(fh,"\n");
+      fprintf(outfile," %f",diff[ii][jj]);
+  fprintf(outfile,"\n");
 }

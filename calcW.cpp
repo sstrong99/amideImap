@@ -106,6 +106,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
 	pbc(tmpvec,box);
 	d2n=norm2vec(tmpvec);
 
+	//lots of duplicated code here, to avoid separate loop for each case
 	if (d2 < cut2 && d2n<cut2) { //both C and N are in cutoff
 	  for (kk=grpSt[jj]; kk<grpSt[jj+1]; kk++) {
 	    if (q[kk]) {

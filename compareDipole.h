@@ -8,13 +8,14 @@
 
 class CompareDipole : public Compare {
 public:
-  CompareDipole(const string &filename, const int nchrom);
+  CompareDipole(const string &filename, const string &outfilename,
+		const int nchrom);
   ~CompareDipole() {};
 
 protected:
   void readline();
   void calcDiff(const CalcW &calcW);
-  void print(FILE *fh);
+  void print();
 
 private:
   vector<rvec> dipole;

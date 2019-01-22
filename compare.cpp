@@ -1,22 +1,44 @@
 #include "compare.h"
 
-Compare::Compare(const string &filename,const int nchrom) : filename(filename),
-							    file(filename),
-							    nchrom(nchrom)
+Compare::Compare(const string &reffilename,const string &outfilename,
+		 const int nchrom) : reffilename(reffilename),
+				     outfilename(outfilename),nchrom(nchrom)
 {
-  if (!file.good()) {
-    printf("ERROR: Compare file %s cannot be read.\n",filename.c_str());
-    exit(EXIT_FAILURE);
+  if (reffilename.empty() && outfilename.empty())
+    doNothing=true;
+  else {
+    doNothing=false;
+
+    reffile.open(reffilename);
+    if (!reffile.good()) {
+      printf("ERROR: Compare file %s cannot be read.\n",reffilename.c_str());
+      exit(EXIT_FAILURE);
+    }
+
+    outfile=fopen(outfilename.c_str(),"w");
+    if (outfile==NULL) {
+      printf("ERROR: Output file %s is bad.\n",outfilename.c_str());
+      exit(EXIT_FAILURE);
+    }
   }
 }
 
-void Compare::compare(const CalcW &calcW,FILE *fh) {
-  if (!getline(file, line)) {
-    printf("ERROR: no more lines in %s.\n",filename.c_str());
+Compare::~Compare() {
+  if (!doNothing) {
+    reffile.close();
+    fclose(outfile);
+  }
+}
+
+void Compare::compare(const CalcW &calcW) {
+  if (doNothing) return;
+
+  if (!getline(reffile, line)) {
+    printf("ERROR: no more lines in %s.\n",reffilename.c_str());
     exit(EXIT_FAILURE);
   }
 
   this->readline();
   this->calcDiff(calcW);
-  this->print(fh);
+  this->print();
 }
