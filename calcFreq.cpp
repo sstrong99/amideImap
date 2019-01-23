@@ -18,8 +18,9 @@ CalcFreq::~CalcFreq() {
 //needed due to a flaw in c++11
 constexpr float CalcFreq::NtermShift[169];
 constexpr float CalcFreq::CtermShift[169];
+constexpr float CalcFreq::Coupling[169];
 
-void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
+void CalcFreq::compute(const Traj &traj, const vector<int> &chromInds) {
   const rvec  *x=traj.getCoords();
   traj.getBox(box);
   ts=traj.getNT()-1;
@@ -53,7 +54,7 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
   rvec *tdPos = new rvec[nchrom];
   //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
-    thisC=inds[ii];
+    thisC=chromInds[ii];
     copyRvec(x[thisC],Cpos);
     addRvec(x[thisC+1],Cpos,vecCO,-1); //points towards O (rO-rC)
     pbc(vecCO,box);
@@ -162,18 +163,34 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
   delete[] cog;
 
   //compute couplings
-  float tmpcoup;
+  float tmpcoup,id,id3;
+  int   resdiff;
   for (ii=0; ii<nchrom-1; ii++) {
+    thisC=chromInds[ii];
+    thisRes=resnumAll[thisC];
     for (jj=ii+1; jj<nchrom; jj++) {
-      addRvec(tdPos[jj],tdPos[ii],tmpvec,-1);
-      pbc(tmpvec,box);
-      d2=norm2vec(tmpvec);
-      d=sqrt(d2);
+      resdiff=thisRes - resnumAll[chromInds[jj]];
+      if (resdiff==1) {  //nearest neighbor coupling
+	//angles should be already calculated, but find out their index
+	a1=calcAngles(thisC,thisRes,x,angleID,phi,psi);
+	tmpcoup = interp2(phi[a1],psi[a1],Coupling);
+      } else if (resdiff==-1) {
+	a1=calcAngles(thisC,thisRes+1,x,angleID,phi,psi);
+	tmpcoup = interp2(phi[a1],psi[a1],Coupling);
+      } else {          //transition dipole coupling
+	addRvec(tdPos[jj],tdPos[ii],tmpvec,-1);
+	pbc(tmpvec,box);
+	d2=norm2vec(tmpvec);
+	id=1.0/sqrt(d2);
+	id3=id*id*id;
 
-      tmpcoup=dot(dip[ii],dip[jj]) - 3*dot(dip[ii],tmpvec)*dot(dip[jj],tmpvec);
+	tmpcoup  = dot(dip[ii],dip[jj])*id3;
+	tmpcoup -= 3*dot(dip[ii],tmpvec)*dot(dip[jj],tmpvec)*id3*id*id;
+	tmpcoup *= coupConst;
+      }
 
       hii=ii*nchrom - (ii-1)*ii/2 + jj - ii;
-      ham[hii] = coupConst * tmpcoup / (d2*d2*d);
+      ham[hii] = tmpcoup;
     }
     multRvec(dip[ii],tdMag);
   }
@@ -336,8 +353,8 @@ void CalcFreq::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
 void CalcFreq::calcTDpos(const rvec &Cpos, const rvec &vecCO, const rvec &vecCN,
 			 rvec &tdPos) {
   copyRvec(Cpos,tdPos);
-  addRvec(vecCO,tdPos,0.665);
-  addRvec(vecCN,tdPos,0.258);
+  addRvec(vecCO,tdPos,1.256668374);  //0.665 A -> a0
+  addRvec(vecCN,tdPos,0.487549535);  //0.258 A -> a0
 }
 
 
