@@ -71,9 +71,9 @@ class CalcFreq {
   //transition dipole map
   static void calcTD(const rvec &rCO, const rvec &rCN, rvec &out);
   static void calcTDpos(const rvec &,const rvec &,const rvec &,rvec &);
-  static constexpr float coupConst = 2584.615;         //cm^-1 * a0^3
-  static constexpr float tdMag     = 2.73;             //D/A/amu^1/2
-  static constexpr float tdAngle = 10.0*(PI/180.0);
+  static constexpr float tdMag     = 2.73;                      //D/A/amu^1/2
+  static constexpr float coupConst = 383.313*A0INV*A0INV*A0INV/(1000*tdMag*tdMag); //cm^-1 * a0^3
+  static constexpr float tdAngle   = 10.0*(PI/180.0);
 
   //NN frequency shifts, copied from Jansen's AmideImap program
   static constexpr float dTheta = 30.0;

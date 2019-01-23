@@ -178,7 +178,7 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &chromInds) {
 	a1=calcAngles(thisC,thisRes+1,x,angleID,phi,psi);
 	tmpcoup = interp2(phi[a1],psi[a1],Coupling);
       } else {          //transition dipole coupling
-	addRvec(tdPos[jj],tdPos[ii],tmpvec,-1);
+	addRvec(tdPos[ii],tdPos[jj],tmpvec,-1);
 	pbc(tmpvec,box);
 	d2=norm2vec(tmpvec);
 	id=1.0/sqrt(d2);
@@ -192,9 +192,7 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &chromInds) {
       hii=ii*nchrom - (ii-1)*ii/2 + jj - ii;
       ham[hii] = tmpcoup;
     }
-    multRvec(dip[ii],tdMag);
   }
-  multRvec(dip[ii],tdMag);
   delete[] tdPos;
 }
 
@@ -345,6 +343,7 @@ void CalcFreq::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
   addRvec(rCO,out,-cos(tdAngle)); //reverse CO vector
 
   normalize(out);
+  multRvec(out,tdMag);
 
   //test that angle is correct (10deg)
   //printf("angle = %f\n",acos(dot(out,rCO))*180.0/PI);
