@@ -17,15 +17,15 @@ void CompareDipole::readline() {
   }
 }
 
-void CompareDipole::calcDiff(const CalcW &calcW) {
-  if (ts != calcW.getTS()) {
+void CompareDipole::calcDiff(const CalcFreq &calcFreq) {
+  if (ts != calcFreq.getTS()) {
     printf("ERROR: comparison with %s is not at the same timestep.\n",reffilename.c_str());
     exit(EXIT_FAILURE);
   }
 
   for (int ii=0; ii<nchrom; ii++)
     for (int jj=0; jj<DIM; jj++)
-      diff[ii][jj]=calcW.getDip(ii,jj)/dipole[ii][jj];
+      diff[ii][jj]=calcFreq.getDip(ii,jj)/dipole[ii][jj];
 }
 
 void CompareDipole::print() {

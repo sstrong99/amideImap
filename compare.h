@@ -1,7 +1,7 @@
 #ifndef COMPARE_H
 #define COMPARE_H
 
-#include "calcW.h"
+#include "calcFreq.h"
 
 #include <string>
 #include <fstream>
@@ -15,7 +15,7 @@ public:
   Compare(const string &reffilename,const string &outfilename,const int nchrom);
   ~Compare();
 
-  void compare(const CalcW &calcW);
+  void compare(const CalcFreq &calcFreq);
 
 protected:
   string reffilename,outfilename;
@@ -30,7 +30,7 @@ protected:
   int ts;
 
   virtual void readline() = 0;
-  virtual void calcDiff(const CalcW &calcW)  = 0;
+  virtual void calcDiff(const CalcFreq &calcFreq)  = 0;
   virtual void print() = 0;
 
 };

@@ -20,7 +20,7 @@ LIBDIRS = -L$(SOFTDIR)/lib
 
 #MMD and MP generate .d files
 OBJ_DIR = OBJ
-SRCS  = main.cpp timer.cpp input.cpp groFile.cpp itpFile.cpp charges.cpp traj.cpp calcW.cpp compare.cpp compareEnergy.cpp compareDipole.cpp
+SRCS  = main.cpp timer.cpp input.cpp groFile.cpp itpFile.cpp charges.cpp traj.cpp calcFreq.cpp compare.cpp compareEnergy.cpp compareDipole.cpp
 
 OBJS := $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)

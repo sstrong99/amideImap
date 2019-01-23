@@ -30,7 +30,7 @@ Compare::~Compare() {
   }
 }
 
-void Compare::compare(const CalcW &calcW) {
+void Compare::compare(const CalcFreq &calcFreq) {
   if (doNothing) return;
 
   if (!getline(reffile, line)) {
@@ -39,6 +39,6 @@ void Compare::compare(const CalcW &calcW) {
   }
 
   this->readline();
-  this->calcDiff(calcW);
+  this->calcDiff(calcFreq);
   this->print();
 }

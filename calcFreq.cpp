@@ -1,6 +1,6 @@
-#include "calcW.h"
+#include "calcFreq.h"
 
-CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int *grpInd, const int nCutGrp) :
+CalcFreq::CalcFreq(const int nchrom, const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int *grpInd, const int nCutGrp) :
   nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
   backbone(gro.getBackbone()), chain(gro.getChain()),
   resnumAll(gro.getResNumAll()), q(chg.getCharges()),
@@ -10,16 +10,16 @@ CalcW::CalcW(const int nchrom, const Charges &chg, const GroFile &gro, const vec
   dip     = new rvec[nchrom];
 }
 
-CalcW::~CalcW() {
+CalcFreq::~CalcFreq() {
   delete[] freq;
   delete[] dip;
 }
 
 //needed due to a flaw in c++11
-constexpr float CalcW::NtermShift[169];
-constexpr float CalcW::CtermShift[169];
+constexpr float CalcFreq::NtermShift[169];
+constexpr float CalcFreq::CtermShift[169];
 
-void CalcW::compute(const Traj &traj, const vector<int> &inds) {
+void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
   const rvec  *x=traj.getCoords();
   traj.getBox(box);
   ts=traj.getNT()-1;
@@ -159,7 +159,7 @@ void CalcW::compute(const Traj &traj, const vector<int> &inds) {
   delete[] cog;
 }
 
-void CalcW::print(FILE *fFreq, FILE *fDip) {
+void CalcFreq::print(FILE *fFreq, FILE *fDip) {
   //frequencies
   fprintf(fFreq,"%d",ts);
   for (int ii=0; ii<nchrom; ii++)
@@ -174,7 +174,7 @@ void CalcW::print(FILE *fFreq, FILE *fDip) {
   fprintf(fDip,"\n");
 }
 
-uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x,vector<int> &angleID, vector<float> &phi, vector<float> &psi) {
+uint CalcFreq::calcAngles(const int atomI, const int resI, const rvec *x,vector<int> &angleID, vector<float> &phi, vector<float> &psi) {
   //check if already calculated this angle
   uint ind;
   for (ind=0; ind<angleID.size(); ind++)
@@ -204,7 +204,7 @@ uint CalcW::calcAngles(const int atomI, const int resI, const rvec *x,vector<int
   return angleID.size()-1;
 }
 
-uint CalcW::search(const int st, const int resI, const string &whichtype) {
+uint CalcFreq::search(const int st, const int resI, const string &whichtype) {
   if (resI>resnumAll[st]) {  //search forward
     for (int ii=st+1; ii<natoms; ii++)
       if (type[ii].compare(whichtype)==0 && chain[ii]==chain[st])
@@ -220,7 +220,7 @@ uint CalcW::search(const int st, const int resI, const string &whichtype) {
   exit(EXIT_FAILURE);
 }
 
-float CalcW::calcDihedral(const rvec &x1, const rvec &x2,
+float CalcFreq::calcDihedral(const rvec &x1, const rvec &x2,
 			  const rvec &x3, const rvec &x4) {
   rvec b1,b2,b3;
   addRvec(x2,x1,b1,-1);
@@ -256,12 +256,12 @@ float CalcW::calcDihedral(const rvec &x1, const rvec &x2,
   //return acosd(dot(n1,n2));
 }
 
-inline void CalcW::normalize(rvec &v) {
+inline void CalcFreq::normalize(rvec &v) {
   float norm=sqrt(norm2vec(v));
   multRvec(v,1.0/norm);
 }
 
-float CalcW::interp2(const float &x, const float &y, const float z[]) {
+float CalcFreq::interp2(const float &x, const float &y, const float z[]) {
   int nx=(int) (x+180.0)/dTheta;
   int ny=(int) (y+180.0)/dTheta;
 
@@ -295,7 +295,7 @@ float CalcW::interp2(const float &x, const float &y, const float z[]) {
   return ans;
 }
 
-void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
+void CalcFreq::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
   rvec n1,n2;
   cross(rCO,rCN,n1);  //n1: normal to OCN plane
   cross(n1,rCO,n2);   //n2: perpendicular to CO, in direction of N
@@ -313,7 +313,7 @@ void CalcW::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
   multRvec(out,2.73); //magintude of td in D/A/amu^1/2
 }
 
-void CalcW::calcCOG(const rvec *x,rvec *cog) {
+void CalcFreq::calcCOG(const rvec *x,rvec *cog) {
   int jj,nthis,thisSt;
   rvec tmpcog,tmpdiff,tmpvec,xref;
   for (int ii=0; ii<nCutGrp; ii++) {
@@ -332,7 +332,7 @@ void CalcW::calcCOG(const rvec *x,rvec *cog) {
   }
 }
 
-vector<uint> CalcW::getExcludes(const uint nnC[3]) {
+vector<uint> CalcFreq::getExcludes(const uint nnC[3]) {
   uint ii,jj,tmpExcl;
   vector<uint> excludeGrp;
   for (ii=0; ii<3; ii++) { //loop through neighboring Cs

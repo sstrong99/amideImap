@@ -19,14 +19,14 @@ void CompareEnergy::readline() {
   }
 }
 
-void CompareEnergy::calcDiff(const CalcW &calcW) {
-  if (ts != calcW.getTS()) {
+void CompareEnergy::calcDiff(const CalcFreq &calcFreq) {
+  if (ts != calcFreq.getTS()) {
     printf("ERROR: comparison with %s is not at the same timestep.\n",reffilename.c_str());
     exit(EXIT_FAILURE);
   }
 
   for (int ii=0; ii<nchrom; ii++)
-    diff[ii]=calcW.getFreq(ii)-energy[ii];
+    diff[ii]=calcFreq.getFreq(ii)-energy[ii];
 }
 
 void CompareEnergy::print() {

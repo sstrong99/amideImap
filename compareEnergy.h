@@ -14,7 +14,7 @@ public:
 
 protected:
   void readline();
-  void calcDiff(const CalcW &calcW);
+  void calcDiff(const CalcFreq &calcFreq);
   void print();
 
 private:

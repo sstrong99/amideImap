@@ -1,5 +1,5 @@
-#ifndef CALCW_H
-#define CALCW_H
+#ifndef CALCFREQ_H
+#define CALCFREQ_H
 
 #include "traj.h"
 #include "charges.h"
@@ -11,11 +11,11 @@
 #include <cstdio>
 #include <algorithm>
 
-class CalcW {
+class CalcFreq {
  public:
-  CalcW(const int nchrom,const Charges &chg, const GroFile &gro,
+  CalcFreq(const int nchrom,const Charges &chg, const GroFile &gro,
 	const vector<int> &grpSt, const int *grpInd, const int nCutGrp);
-  ~CalcW();
+  ~CalcFreq();
   void compute(const Traj &traj, const vector<int> &inds);
   void print(FILE *fFreq, FILE *fDip);
 

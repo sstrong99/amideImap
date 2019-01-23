@@ -3,7 +3,7 @@
 #include "groFile.h"
 #include "charges.h"
 #include "traj.h"
-#include "calcW.h"
+#include "calcFreq.h"
 #include "compareEnergy.h"
 #include "compareDipole.h"
 
@@ -30,13 +30,13 @@ int main(int argc, const char *argv[])
   //get indicies of C=O using gro.findCarboxyl(res,num)
   vector<int> indC = gro.getChromList(input,4);
 
-  //init calcW
+  //init calcFreq
   int nchrom = indC.size();
   //use residues as cutoff groups
-  //CalcW calcW(nchrom,charges,gro,gro.getResSt(),gro.getNres());
+  //CalcFreq calcFreq(nchrom,charges,gro,gro.getResSt(),gro.getNres());
 
   //use charge groups for cutoff
-  CalcW calcW(nchrom,charges,gro,charges.getCGst(),
+  CalcFreq calcFreq(nchrom,charges,gro,charges.getCGst(),
 	      charges.getCG(),charges.getNcg());
 
   //loop through timesteps
@@ -45,11 +45,11 @@ int main(int argc, const char *argv[])
   FILE *fFreq=fopen(input.getEnergyFile().c_str(),"w");
   FILE *fDip=fopen(input.getDipoleFile().c_str(),"w");
   while(traj.next()==0) {
-    calcW.compute(traj,indC);
-    calcW.print(fFreq,fDip);
+    calcFreq.compute(traj,indC);
+    calcFreq.print(fFreq,fDip);
 
-    cmpE.compare(calcW);
-    cmpD.compare(calcW);
+    cmpE.compare(calcFreq);
+    cmpD.compare(calcFreq);
   }
   fclose(fFreq);
   fclose(fDip);
