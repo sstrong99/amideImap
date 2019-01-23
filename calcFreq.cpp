@@ -1,17 +1,17 @@
 #include "calcFreq.h"
 
 CalcFreq::CalcFreq(const int nchrom, const Charges &chg, const GroFile &gro, const vector<int> &grpSt, const int *grpInd, const int nCutGrp) :
-  nchrom(nchrom), natoms(gro.getNatom()), type(gro.getType()),
-  backbone(gro.getBackbone()), chain(gro.getChain()),
+  nchrom(nchrom), nham(nchrom*(nchrom+1)/2), natoms(gro.getNatom()),
+  type(gro.getType()), backbone(gro.getBackbone()), chain(gro.getChain()),
   resnumAll(gro.getResNumAll()), q(chg.getCharges()),
   grpSt(grpSt), grpInd(grpInd), nCutGrp(nCutGrp)
 {
-  freq   = new float[nchrom];
+  ham     = new float[nham];
   dip     = new rvec[nchrom];
 }
 
 CalcFreq::~CalcFreq() {
-  delete[] freq;
+  delete[] ham;
   delete[] dip;
 }
 
@@ -48,8 +48,9 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
   uint          nnC[3];  //list of C atoms in two nn amides, and self
   rvec vecCO, vecCN, tmpvec, Cpos, Npos, tmpEn, tmpEc;
   float d2,d,d2n;
-  uint thisC,thisRes,a1,a2,nextC;
+  uint thisC,thisRes,a1,a2,nextC,hii;
   rvec thisCcog,thisNcog;
+  rvec *tdPos = new rvec[nchrom];
   //loop through labelled CO and transition dipole
   for (ii=0; ii<nchrom; ii++) {
     thisC=inds[ii];
@@ -65,6 +66,7 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
 
     calcTD(vecCO,vecCN,tmpvec);
     copyRvec(tmpvec,dip[ii]);
+    calcTDpos(Cpos,vecCO,vecCN,tdPos[ii]);
 
     //include NN peptide shifts
     thisRes=resnumAll[thisC];
@@ -154,23 +156,43 @@ void CalcFreq::compute(const Traj &traj, const vector<int> &inds) {
 	}
       }
     }
-    freq[ii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
+    hii=ii*nchrom-(ii-1)*ii/2;
+    ham[hii] = map(dot(tmpEc,vecCO), dot(tmpEn,vecCO)) + nnfs;
   }
   delete[] cog;
+
+  //compute couplings
+  float tmpcoup;
+  for (ii=0; ii<nchrom-1; ii++) {
+    for (jj=ii+1; jj<nchrom; jj++) {
+      addRvec(tdPos[jj],tdPos[ii],tmpvec,-1);
+      pbc(tmpvec,box);
+      d2=norm2vec(tmpvec);
+      d=sqrt(d2);
+
+      tmpcoup=dot(dip[ii],dip[jj]) - 3*dot(dip[ii],tmpvec)*dot(dip[jj],tmpvec);
+
+      hii=ii*nchrom - (ii-1)*ii/2 + jj - ii;
+      ham[hii] = coupConst * tmpcoup / (d2*d2*d);
+    }
+    multRvec(dip[ii],tdMag);
+  }
+  multRvec(dip[ii],tdMag);
+  delete[] tdPos;
 }
 
 void CalcFreq::print(FILE *fFreq, FILE *fDip) {
   //frequencies
   fprintf(fFreq,"%d",ts);
-  for (int ii=0; ii<nchrom; ii++)
-    fprintf(fFreq," %f",freq[ii]);
+  for (int ii=0; ii<nham; ii++)
+    fprintf(fFreq," %f",ham[ii]);
   fprintf(fFreq,"\n");
 
   //dipole moments (order: all x components, all y comp, all z comp)
   fprintf(fDip,"%d",ts);
   for (int kk=0; kk<DIM; kk++)
     for (int ii=0; ii<nchrom; ii++)
-      fprintf(fDip," %f",dip[ii][kk]);
+      fprintf(fDip," %f",dip[ii][kk]*tdMag);
   fprintf(fDip,"\n");
 }
 
@@ -309,9 +331,15 @@ void CalcFreq::calcTD(const rvec &rCO, const rvec &rCN,rvec &out) {
 
   //test that angle is correct (10deg)
   //printf("angle = %f\n",acos(dot(out,rCO))*180.0/PI);
-
-  multRvec(out,2.73); //magintude of td in D/A/amu^1/2
 }
+
+void CalcFreq::calcTDpos(const rvec &Cpos, const rvec &vecCO, const rvec &vecCN,
+			 rvec &tdPos) {
+  copyRvec(Cpos,tdPos);
+  addRvec(vecCO,tdPos,0.665);
+  addRvec(vecCN,tdPos,0.258);
+}
+
 
 void CalcFreq::calcCOG(const rvec *x,rvec *cog) {
   int jj,nthis,thisSt;

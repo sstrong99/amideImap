@@ -25,13 +25,13 @@ void CompareDipole::calcDiff(const CalcFreq &calcFreq) {
 
   for (int ii=0; ii<nchrom; ii++)
     for (int jj=0; jj<DIM; jj++)
-      diff[ii][jj]=calcFreq.getDip(ii,jj)/dipole[ii][jj];
+      diff[ii][jj]=calcFreq.getDip(ii,jj)-dipole[ii][jj];
 }
 
 void CompareDipole::print() {
   fprintf(outfile,"%d",ts);
   for (int ii=0; ii<nchrom; ii++)
     for (int jj=0; jj<DIM; jj++)
-      fprintf(outfile," %f",diff[ii][jj]);
+      fprintf(outfile," %e",diff[ii][jj]);
   fprintf(outfile,"\n");
 }

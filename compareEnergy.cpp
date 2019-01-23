@@ -26,7 +26,7 @@ void CompareEnergy::calcDiff(const CalcFreq &calcFreq) {
   }
 
   for (int ii=0; ii<nchrom; ii++)
-    diff[ii]=calcFreq.getFreq(ii)-energy[ii];
+    diff[ii]=calcFreq.getHam(ii)-energy[ii];
 }
 
 void CompareEnergy::print() {

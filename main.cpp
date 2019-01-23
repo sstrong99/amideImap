@@ -4,7 +4,7 @@
 #include "charges.h"
 #include "traj.h"
 #include "calcFreq.h"
-#include "compareEnergy.h"
+#include "compareHam.h"
 #include "compareDipole.h"
 
 #include <cstdio>
@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
 	      charges.getCG(),charges.getNcg());
 
   //loop through timesteps
-  CompareEnergy cmpE(input.getErefFile(),input.getEdiffFile(),nchrom);
+  CompareHam    cmpE(input.getErefFile(),input.getEdiffFile(),nchrom);
   CompareDipole cmpD(input.getDrefFile(),input.getDdiffFile(),nchrom);
   FILE *fFreq=fopen(input.getEnergyFile().c_str(),"w");
   FILE *fDip=fopen(input.getDipoleFile().c_str(),"w");

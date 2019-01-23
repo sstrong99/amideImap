@@ -20,11 +20,12 @@ class CalcFreq {
   void print(FILE *fFreq, FILE *fDip);
 
   float getDip(const int ii,const int jj) const { return dip[ii][jj]; }
-  float getFreq(const int ii)             const { return freq[ii];    }
+  float getHam(const int ii)              const { return ham[ii];     }
   int   getTS()                           const { return ts;          }
 
  private:
   const int    nchrom;
+  const int    nham;
   const int    natoms;
 
   const string *type;
@@ -41,7 +42,7 @@ class CalcFreq {
 
   int ts;
 
-  float *freq;
+  float *ham;      //hamiltonian in upper triangular form
   rvec  *dip;      //transition dipole moments
 
   uint calcAngles(const int atomI, const int resI, const rvec *x,vector<int> &angleID, vector<float> &phi, vector<float> &psi);
@@ -55,11 +56,12 @@ class CalcFreq {
 
   //**************************************************************************
   //MAP parameters
+  //TODO: could read these from file
 
   //efield cutoffs
   static constexpr float cut     = 2.0*A0INV;      //20A
   static constexpr float cut2    = cut*cut;
-  static constexpr float cutExt  = cut+0.3*A0INV;  //add 3A
+  static constexpr float cutExt  = cut+0.3*A0INV;  //add 3A //TODO: 2.5 ok?
   static constexpr float cutExt2 = cutExt*cutExt;
 
   //freq map function
@@ -67,7 +69,10 @@ class CalcFreq {
   { return 1618 + 7729*Ec - 3576*En; };
 
   //transition dipole map
-  static void calcTD(const rvec &rCO, const rvec &rCN,rvec &out);
+  static void calcTD(const rvec &rCO, const rvec &rCN, rvec &out);
+  static void calcTDpos(const rvec &,const rvec &,const rvec &,rvec &);
+  static constexpr float coupConst = 2584.615;         //cm^-1 * a0^3
+  static constexpr float tdMag     = 2.73;             //D/A/amu^1/2
 
   //NN frequency shifts, copied from Jansen's AmideImap program
   static constexpr float dTheta = 30.0;
