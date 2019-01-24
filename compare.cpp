@@ -4,7 +4,7 @@ Compare::Compare(const string &reffilename,const string &outfilename,
 		 const int nchrom) : reffilename(reffilename),
 				     outfilename(outfilename),nchrom(nchrom)
 {
-  if (reffilename.empty() && outfilename.empty())
+  if (reffilename.empty())
     doNothing=true;
   else {
     doNothing=false;

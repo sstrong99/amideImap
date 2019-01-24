@@ -1,0 +1,30 @@
+The executable takes only one argument, the name of the input script. If not
+given, it will default to "in.amideI". Each line of the input script begins
+with a keyword followed by its value. An example is given here in "in.amideI".
+The following keywords must be specified:
+trajFile: Name of the xtc file to read the trajectory from
+groFile:  Name of the gro file to read the configuration from
+itpFile:  Name of an itp file to read charges and charge groups from,
+	  multiple itp files can be specified with separate itpFile keywords
+residue:  Which residues to label specified as a 3 letter amino acid code
+	  followed by residue number (e.g. THR 75). If that residue appears
+	  on multiple protein chains, each one will be labelled. Like itpFile
+	  the residue keyword can be specified several times to label several
+	  residues.
+
+The following keywords are optional:
+energyFile:  Name of output file with hamiltonian. Defaults to "Energy.txt"
+dipoleFile:  Name of output file with dipoles. Defaults to "Dipole.txt"
+energyRef:   Name of file with hamiltonian to compare to. If not supplied, no
+	     comparison is done.
+energyDiff:  If energyRef is specified, this gives the name of the output file
+	     to print the hamiltonian comparison to. Defaults
+	     to "Energy_diff.txt"
+dipoleRef:   Name of the file with the dipoles to compare to. If not supplied,
+	     no comparison is done.
+dipoleDiff:  If diopleRef is specified, this gives the name of the output file
+	     to print the dipole comparison to. Defaults to "Dipole_diff.txt"
+
+The map parameters, including the electric field cutoff, can only be modified by
+changing the source code. Start by looking in calcFreq.h in the section labelled
+"Map parameters"

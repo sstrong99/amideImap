@@ -61,7 +61,7 @@ class CalcFreq {
   //efield cutoffs
   static constexpr float cut     = 2.0*A0INV;      //20A
   static constexpr float cut2    = cut*cut;
-  static constexpr float cutExt  = cut+0.3*A0INV;  //add 3A //TODO: 2.5 ok?
+  static constexpr float cutExt  = cut+0.25*A0INV;  //add 3A //TODO: 2.5 ok?
   static constexpr float cutExt2 = cutExt*cutExt;
 
   //freq map function

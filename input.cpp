@@ -1,6 +1,6 @@
 #include "input.h"
 
-Input::Input(const string &inputfile) : outPostfix("")
+Input::Input(const string &inputfile)
 {
   ifstream file(inputfile);
   if (!file.good()) {
@@ -9,11 +9,18 @@ Input::Input(const string &inputfile) : outPostfix("")
   }
 
   //default vaules
-  outPostfix="";
+  string eFileDef="Energy.txt";
+  string dFileDef="Dipole.txt";
+  string eDiffDef="Energy_diff.txt";
+  string dDiffDef="Dipole_diff.txt";
+  trajFile="";
+  groFile="";
+  eFile=eFileDef;
+  dFile=dFileDef;
   eRefFile="";
   dRefFile="";
-  eDiffFile="";
-  dDiffFile="";
+  eDiffFile=eDiffDef;
+  dDiffFile=dDiffDef;
 
   string   line;
   string   key;
@@ -27,42 +34,68 @@ Input::Input(const string &inputfile) : outPostfix("")
 
     stringstream   linestream(line);
 
-    //TODO: throw error if command repeated, except when expected
-
     linestream >> key;
-    if (key.compare("trajFile")==0)
+    if (key.compare("trajFile")==0) {
+      checkEmpty(trajFile,key);
       linestream >> trajFile;
-    else if (key.compare("outPostfix")==0) {
-      linestream >> outPostfix;
-      outPostfix.insert(0,"_"); }
-    else if (key.compare("groFile")==0)
+      if (linestream.fail()) eolErr(key);
+    } else if (key.compare("energyFile")==0) {
+      checkDefault(eFile,eFileDef,key);
+      linestream >> eFile;
+      if (linestream.fail()) eolErr(key);
+      else eolErr(key);
+    } else if (key.compare("dipoleFile")==0) {
+      checkDefault(dFile,dFileDef,key);
+      linestream >> dFile;
+    } else if (key.compare("groFile")==0) {
+      checkEmpty(groFile,key);
       linestream >> groFile;
-    else if (key.compare("itpFile")==0) {
+    } else if (key.compare("itpFile")==0) {
       linestream >> tmpstr;
       itpFiles.push_back(tmpstr);
-    }
-    else if (key.compare("energyRef")==0)
-      linestream >> eRefFile;
-    else if (key.compare("dipoleRef")==0)
-      linestream >> dRefFile;
-    else if (key.compare("energyDiff")==0)
-      linestream >> eDiffFile;
-    else if (key.compare("dipoleDiff")==0)
-      linestream >> dDiffFile;
-    else if (key.compare("residue")==0) {
+    }  else if (key.compare("residue")==0) {
       linestream >> tmpstr;
+      if (linestream.fail()) eolErr(key);
       resNames.push_back(tmpstr);
       linestream >> tmpstr;
+      if (linestream.fail()) eolErr(key);
       resNums.push_back(stoi(tmpstr));
-    }
-    else if (key.compare(0,1,"#")==0)
-      continue; //skip comment
-    else {
+    } else if (key.compare("energyRef")==0) {
+      checkEmpty(eRefFile,key);
+      linestream >> eRefFile;
+    } else if (key.compare("dipoleRef")==0) {
+      checkEmpty(dRefFile,key);
+      linestream >> dRefFile;
+    } else if (key.compare("energyDiff")==0) {
+      checkDefault(eDiffFile,eDiffDef,key);
+      linestream >> eDiffFile;
+    } else if (key.compare("dipoleDiff")==0) {
+      checkDefault(dDiffFile,dDiffDef,key);
+      linestream >> dDiffFile;
+    } else if (key.compare(0,1,"#")==0) { //skip comment
+      continue;
+    } else {
       printf("ERROR: unrecognized keyword %s in %s\n",
 	     key.c_str(),inputfile.c_str());
       exit(EXIT_FAILURE);
     }
   }
+
+  //check for bad input
+  if (trajFile.empty()) {
+    printf("ERROR: trajFile keyword not specified\n");
+    exit(EXIT_FAILURE);
+  } else if (groFile.empty()) {
+    printf("ERROR: groFile keyword not specified\n");
+    exit(EXIT_FAILURE);
+  } else if (itpFiles.size()==0) {
+    printf("ERROR: no itpFiles specified\n");
+    exit(EXIT_FAILURE);
+  } else if (resNames.size()==0) {
+    printf("ERROR: no residues specified\n");
+    exit(EXIT_FAILURE);
+  }
+
 }
 
 string Input::getITPfile(const int ii) const {
@@ -75,4 +108,24 @@ string Input::getResNames(const int ii) const {
 
 int Input::getResNums(const int ii) const {
   return getVect(ii, resNums, "residue number");
+}
+
+void Input::checkEmpty(const string &var,const string &name) {
+  if (!var.empty()) {
+    printf("ERROR: %s already set to %s\n",name.c_str(), var.c_str());
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Input::checkDefault(const string &var,const string &def,
+			 const string & name) {
+  if (var.compare(def)) {
+    printf("ERROR: %s already set to %s\n",name.c_str(),def.c_str());
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Input::eolErr(const string &name) {
+  printf("ERROR: value was not supplied for keyword %s\n",name.c_str());
+  exit(EXIT_FAILURE);
 }

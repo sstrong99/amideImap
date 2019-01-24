@@ -1,0 +1,17 @@
+trajFile md.xtc
+groFile conf.gro
+itpFile itp/spc.itp
+itpFile itp/topol_POTion.itp
+itpFile itp/topol_CLion.itp
+itpFile itp/topol_Protein1.itp
+itpFile itp/topol_DPPC.itp
+itpFile itp/topol_bindion.itp
+residue THR 75
+residue VAL 76
+residue GLY 77
+residue TYR 78
+residue GLY 79
+energyRef  Energy_newJansen.txt
+energyDiff Energy_diff.txt
+dipoleRef  Dipole_carr.txt
+dipoleDiff Dipole_diff.txt
