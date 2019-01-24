@@ -43,15 +43,17 @@ Input::Input(const string &inputfile)
       checkDefault(eFile,eFileDef,key);
       linestream >> eFile;
       if (linestream.fail()) eolErr(key);
-      else eolErr(key);
     } else if (key.compare("dipoleFile")==0) {
       checkDefault(dFile,dFileDef,key);
       linestream >> dFile;
+      if (linestream.fail()) eolErr(key);
     } else if (key.compare("groFile")==0) {
       checkEmpty(groFile,key);
       linestream >> groFile;
+      if (linestream.fail()) eolErr(key);
     } else if (key.compare("itpFile")==0) {
       linestream >> tmpstr;
+      if (linestream.fail()) eolErr(key);
       itpFiles.push_back(tmpstr);
     }  else if (key.compare("residue")==0) {
       linestream >> tmpstr;
@@ -63,15 +65,19 @@ Input::Input(const string &inputfile)
     } else if (key.compare("energyRef")==0) {
       checkEmpty(eRefFile,key);
       linestream >> eRefFile;
+      if (linestream.fail()) eolErr(key);
     } else if (key.compare("dipoleRef")==0) {
       checkEmpty(dRefFile,key);
       linestream >> dRefFile;
+      if (linestream.fail()) eolErr(key);
     } else if (key.compare("energyDiff")==0) {
       checkDefault(eDiffFile,eDiffDef,key);
       linestream >> eDiffFile;
+      if (linestream.fail()) eolErr(key);
     } else if (key.compare("dipoleDiff")==0) {
       checkDefault(dDiffFile,dDiffDef,key);
       linestream >> dDiffFile;
+      if (linestream.fail()) eolErr(key);
     } else if (key.compare(0,1,"#")==0) { //skip comment
       continue;
     } else {
