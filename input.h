@@ -31,6 +31,8 @@ public:
   string getEnergyFile() const {return eFile;}
   string getDipoleFile() const {return dFile;}
 
+  void setTrajFile(const string &newTrajFile) { trajFile=newTrajFile; }
+
 private:
   string trajFile,eFile,dFile,groFile,eRefFile,dRefFile,eDiffFile,dDiffFile;
   vector<string> itpFiles;

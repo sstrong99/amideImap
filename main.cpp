@@ -14,9 +14,15 @@
 int main(int argc, const char *argv[])
 {
   string inputfile="in.amideI"; //default input file
-  if (argc == 2)
+  if (argc == 2 || argc == 3)
     inputfile=argv[1];
   Input input(inputfile);
+
+  //if supplied trajfile, override input file
+  if (argc == 3) {
+    string trajfile=argv[2];
+    input.setTrajFile(trajfile);
+  }
 
   Timer time_entire;
 
