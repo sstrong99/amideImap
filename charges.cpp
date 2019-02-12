@@ -47,7 +47,7 @@ Charges::Charges(const Input &input,const GroFile &gro) :
     cgThis=itps[jj].getCG(thisI);
     //last test is necessary for water, which uses same itp file over and over
     if (cgLast!=cgThis || itpLast!=jj ||
-	(tmpres.compare("HOH")==0 && itpLast==jj && thisI-lastI!=1)) {
+	(tmpres.compare("SOL")==0 && itpLast==jj && thisI-lastI!=1)) {
       cgSt.push_back(ii);
       cgLast=cgThis;
       itpLast=jj;

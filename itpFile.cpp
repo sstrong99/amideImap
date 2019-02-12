@@ -41,8 +41,8 @@ ItpFile::ItpFile(const string &filename) {
 
       //get residue
       linestream >> entry;
-      if (entry.compare("SOL")==0)
-	entry="HOH"; //rename SOL to HOH for compatibility with gro file
+      //if (entry.compare("SOL")==0)
+      //	entry="HOH"; //rename SOL to HOH for compatibility with gro file
       res.push_back(entry);
 
       //get type
@@ -66,7 +66,7 @@ ItpFile::ItpFile(const string &filename) {
   //check if this itp file has solvent or
   bool lastFlag;
   for (ii=0; ii<res.size(); ii++) {
-    if (res[ii].compare("HOH")==0)
+    if (res[ii].compare("SOL")==0)
       lastFlag=true;
     else
       lastFlag=false;

@@ -72,7 +72,7 @@ GroFile::GroFile(const string &filename) {
 
     //number protein chains from 0-n
     //-1 = not part of protein chain
-    if (tmpres.compare("HOH")==0  ||
+    if (tmpres.compare("SOL")==0  ||
 	tmpres.compare("DPPC")==0 ||
 	tmpres.compare("POT")==0  ||
 	tmpres.compare("CL")==0     )
