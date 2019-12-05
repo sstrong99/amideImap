@@ -20,8 +20,6 @@ public:
   int    getResNums(const int ii)  const;
 
   string getTrajFile()   const { return trajFile;   }
-  string getEfile()      const { return eFile; }
-  string getDfile()      const { return dFile; }
   string getGroFile()    const { return groFile;    }
   string getErefFile()   const { return eRefFile;   }
   string getDrefFile()   const { return dRefFile;   }
