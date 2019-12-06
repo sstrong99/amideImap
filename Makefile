@@ -5,12 +5,12 @@ exe     = amideImap
 CXX     = g++
 
 HOST=$(firstword $(subst -, ,$(shell hostname)))
-ifeq ($(HOST),midway)
+ifeq ($(HOST),midway2)
 	SOFTDIR=/home/strong1/install
 else
 	SOFTDIR=/usr/local
 endif
-## $(info $$SOFTDIR is [${SOFTDIR}])
+$(info $$SOFTDIR is [${SOFTDIR}])
 
 INC     = -I$(SOFTDIR)/include/xdrfile
 FLAGS	= -O2 -march=native -Wall -std=c++11 -MMD -MP -fopenmp -DUSEOMP
