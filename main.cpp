@@ -1,3 +1,10 @@
+/*
+    amideImap
+    Purpose: Calculate amide I frequencies and couplings for specified (labeled) chromophores in a protein.
+
+    @author Steven E. Strong
+*/
+
 #include "timer.h"
 #include "input.h"
 #include "groFile.h"
